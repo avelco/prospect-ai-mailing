@@ -29,6 +29,6 @@ archive.zip
 # macOS
 .DS_Store
 
-#csv
 *.csv
 .env
+.python-version
