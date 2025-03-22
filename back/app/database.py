@@ -15,6 +15,7 @@ class Prospect(Base):
     state = Column(String)
     country = Column(String)
     identification = Column(String, nullable=False, unique=True)
+    status = Column(String, nullable=False)
     
     # Define relationships to related tables
     details = relationship("ProspectDetail", back_populates="prospect", cascade="all, delete-orphan")
@@ -27,6 +28,7 @@ class ProspectDetail(Base):
     prospect_id = Column(Integer, ForeignKey('prospects.id'), nullable=False)
     description = Column(Text)
     llm = Column(String)
+    score = Column(Integer, nullable=False)
     
     # Back reference to Prospect
     prospect = relationship("Prospect", back_populates="details")
