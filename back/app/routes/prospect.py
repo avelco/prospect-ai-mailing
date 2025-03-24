@@ -1,8 +1,14 @@
 from fastapi import APIRouter
-from ..services.mail import service_send_email
+from ..services.prospects import get_prospects_service
+from ..conection import SessionLocal
 
 prospect = APIRouter()
 
 @prospect.get("/prospects")
 async def get_prospects():
-    return {"message": "Hello World"}
+    db = SessionLocal()
+    try:
+        prospects = await get_prospects_service()
+        return {"prospects": prospects}
+    finally:
+        db.close()

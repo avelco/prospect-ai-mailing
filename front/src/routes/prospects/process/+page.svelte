@@ -1,109 +1,129 @@
 <script lang="ts">
-	let prospects = $state<Record<string, any>[]>([]);
-	let selectedProspects = $state<Record<string, any>[]>([]);
+	type Prospect = {
+		id: number;
+		name: string;
+		email: string;
+		company: string;
+		status: string;
+	};
+
+	type PageData = {
+		prospects: Prospect[];
+		title: string;
+		meta: {
+			description: string;
+		};
+	};
+
+	type ProcessStatus = {
+		status: string;
+		message: string;
+		completedCount: number;
+		totalCount: number;
+	};
+
+	const props = $props<{ data: PageData }>();
+	let prospects = $state<Prospect[]>(props.prospects || []);
+	console.log(prospects)
+	let selectedProspects = $state<Prospect[]>([]);
 	let isLoading = $state(false);
-	let processStatus = $state<{ status: string; message: string; completedCount: number; totalCount: number; }>({ 
+	let processStatus = $state<ProcessStatus>({ 
 		status: 'idle', 
 		message: '', 
 		completedCount: 0, 
 		totalCount: 0 
 	});
 
-	// Mock data for demonstration
-	function loadMockData() {
-		isLoading = true;
-		// Simulate API call delay
-		setTimeout(() => {
-			prospects = [
-				{ id: 1, name: 'Juan Pérez', email: 'juan@example.com', company: 'Tecnologías XYZ', status: 'Nuevo' },
-				{ id: 2, name: 'María García', email: 'maria@example.com', company: 'Innovación ABC', status: 'Nuevo' },
-				{ id: 3, name: 'Carlos López', email: 'carlos@example.com', company: 'Soluciones Tech', status: 'Nuevo' },
-				{ id: 4, name: 'Ana Martínez', email: 'ana@example.com', company: 'Digital Solutions', status: 'Nuevo' },
-				{ id: 5, name: 'Roberto Sánchez', email: 'roberto@example.com', company: 'Web Experts', status: 'Nuevo' },
-			];
-			isLoading = false;
-		}, 800);
-	}
-
-	// Load data when component mounts
-	$effect(() => {
-		if (prospects.length === 0) {
-			loadMockData();
-		}
-	})
-
 	// Toggle selection of a prospect
-	function toggleSelection(prospect: Record<string, any>) {
-		const index = selectedProspects.findIndex(p => p.id === prospect.id);
+	function toggleSelection(prospect: Prospect) {
+		const index = selectedProspects.findIndex((p: Prospect) => p.id === prospect.id);
 		if (index === -1) {
-			selectedProspects = [...selectedProspects, prospect];
+			$effect(() => {
+				selectedProspects = [...selectedProspects, prospect];
+			});
 		} else {
-			selectedProspects = selectedProspects.filter(p => p.id !== prospect.id);
+			$effect(() => {
+				selectedProspects = selectedProspects.filter((p: Prospect) => p.id !== prospect.id);
+			});
 		}
 	}
 
 	// Check if a prospect is selected
-	function isSelected(prospect: Record<string, any>) {
-		return selectedProspects.some(p => p.id === prospect.id);
+	function isSelected(prospect: Prospect): boolean {
+		return selectedProspects.some((p: Prospect) => p.id === prospect.id);
 	}
 
 	// Toggle selection of all prospects
-	function toggleSelectAll() {
+	function toggleSelectAll(): void {
 		if (selectedProspects.length === prospects.length) {
-			selectedProspects = [];
+			$effect(() => {
+				selectedProspects = [];
+			});
 		} else {
-			selectedProspects = [...prospects];
+			$effect(() => {
+				selectedProspects = [...prospects];
+			});
 		}
 	}
 
 	// Process the selected prospects
-	async function processProspects() {
+	async function processProspects(): Promise<void> {
 		if (selectedProspects.length === 0) {
 			alert('Por favor, seleccione al menos un prospecto para procesar');
 			return;
 		}
 
 		// Reset and start processing
-		processStatus = {
-			status: 'processing',
-			message: 'Iniciando procesamiento...',
-			completedCount: 0,
-			totalCount: selectedProspects.length
-		};
+		$effect(() => {
+			processStatus = {
+				status: 'processing',
+				message: 'Iniciando procesamiento...',
+				completedCount: 0,
+				totalCount: selectedProspects.length
+			};
+		});
 
 		// Simulate processing each prospect
 		for (let i = 0; i < selectedProspects.length; i++) {
 			const prospect = selectedProspects[i];
 			
 			// Update status
-			processStatus = {
-				...processStatus,
-				message: `Procesando ${prospect.name} (${i + 1}/${selectedProspects.length})`,
-				completedCount: i
-			};
+			$effect(() => {
+				processStatus = {
+					...processStatus,
+					message: `Procesando ${prospect.name} (${i + 1}/${selectedProspects.length})`,
+					completedCount: i
+				};
+			});
 
 			// Simulate API call delay
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			await new Promise<void>(resolve => setTimeout(resolve, 1000));
 		}
 
 		// Update completed status
-		processStatus = {
-			status: 'completed',
-			message: '¡Procesamiento completado con éxito!',
-			completedCount: selectedProspects.length,
-			totalCount: selectedProspects.length
-		};
+		$effect(() => {
+			processStatus = {
+				status: 'completed',
+				message: '¡Procesamiento completado con éxito!',
+				completedCount: selectedProspects.length,
+				totalCount: selectedProspects.length
+			};
+		});
 		
 		// Update prospects status
-		prospects = prospects.map(p => {
-			if (selectedProspects.some(sp => sp.id === p.id)) {
-				return { ...p, status: 'Procesado' };
-			}
-			return p;
+		$effect(() => {
+			prospects = prospects.map((p: Prospect) => {
+				if (selectedProspects.some((sp: Prospect) => sp.id === p.id)) {
+					return { ...p, status: 'Procesado' };
+				}
+				return p;
+			});
 		});
 
 		// Clear selection
-		selectedProspects = [];
+		$effect(() => {
+			selectedProspects = [];
+		});
 	}
 </script>
 
