@@ -4,12 +4,16 @@
 	let success = $state(false);
 	let csvData = $state<Record<string, string>[]>([]);
 	let dragOver = $state(false);
+	// Variable para guardar el archivo cargado
+	let csvFile: File | null = null;
+	// Variable para almacenar la respuesta del endpoint
+	let backendResponse = $state('');
 
 	async function handleFileSelect(event: Event) {
 		const input = event.target as HTMLInputElement;
 		if (!input.files?.length) return;
 		await processFile(input.files[0]);
-		input.value = ''; // Reset input for re-upload
+		input.value = ''; // Reinicia el input para nueva carga
 	}
 
 	async function handleDrop(event: DragEvent) {
@@ -32,8 +36,10 @@
 			isLoading = true;
 			error = '';
 			success = false;
+			backendResponse = '';
 			csvData = [];
 
+			// Leemos el contenido del archivo para previsualizarlo
 			const text = await file.text();
 			const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
 
@@ -42,7 +48,7 @@
 				return;
 			}
 
-			// Parse headers
+			// Parsear cabeceras
 			const headerRow = rows[0];
 			const headers = headerRow.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(header => {
 				let h = header.trim();
@@ -87,10 +93,63 @@
 
 			if (error) return;
 
+			// Se muestran los datos previsualizados
 			csvData = data;
 			success = true;
+			// Se guarda el archivo para luego subirlo al backend
+			csvFile = file;
 		} catch (e) {
 			error = 'Error processing CSV file';
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	// Función para subir el CSV al endpoint
+	async function processUpload() {
+		if (!csvFile) {
+			error = "No CSV file loaded";
+			return;
+		}
+		try {
+			isLoading = true;
+			error = '';
+			success = false;
+			backendResponse = '';
+
+			const formData = new FormData();
+			formData.append("file", csvFile);
+
+			const response = await fetch("http://localhost:8000/upload-csv/", {
+				method: "POST",
+				body: formData
+			});
+
+			// Intentamos obtener la respuesta en JSON; si no, leemos como texto
+			let result;
+			const contentType = response.headers.get("content-type");
+			if (contentType && contentType.includes("application/json")) {
+				result = await response.json();
+			} else {
+				result = { message: await response.text() };
+			}
+
+			if (!response.ok) {
+				// Si hay error, asignamos el mensaje al error (esto incluye 500)
+				error = result.detail || result.message || "Error uploading CSV file";
+				return;
+			}
+
+			// Limpiamos las variables de estado
+			csvFile = null;
+			csvData = [];
+			error = '';
+			success = false;
+			// Mostramos la respuesta del endpoint
+			backendResponse = result.message;
+		} catch (e) {
+			error = "Error uploading CSV file";
 			console.error(e);
 		} finally {
 			isLoading = false;
@@ -159,10 +218,6 @@
 				</label>
 			</div>
 
-
-
-            
-
 			{#if isLoading}
 				<div class="my-4 flex justify-center">
 					<span class="loading loading-spinner loading-lg text-primary"></span>
@@ -190,7 +245,8 @@
 		</div>
 	</div>
 
-	{#if success}
+	<!-- Si hay respuesta del endpoint, se muestra aquí -->
+	{#if backendResponse}
 		<div class="alert alert-success mb-6">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -205,10 +261,10 @@
 					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 				/>
 			</svg>
-			<span>¡Archivo CSV importado correctamente!</span>
+			<span>{backendResponse}</span>
 		</div>
-
-		{#if csvData.length > 0}
+	{:else}
+		{#if success && csvData.length > 0}
 			<div class="card bg-base-100 shadow-xl">
 				<div class="card-body">
 					<h2 class="card-title">Preview Data</h2>
@@ -242,7 +298,10 @@
 					{/if}
 					
 					<div class="card-actions justify-end mt-4">
-						<button class="btn btn-primary">Procesar datos</button>
+						<!-- Botón para subir el CSV -->
+						<button class="btn btn-primary" onclick={processUpload}>
+							Procesar datos
+						</button>
 					</div>
 				</div>
 			</div>
