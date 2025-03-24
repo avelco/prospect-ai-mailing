@@ -22,9 +22,9 @@
 		totalCount: number;
 	};
 
-	const props = $props<{ data: PageData }>();
-	let prospects = $state<Prospect[]>(props.prospects || []);
-	console.log(prospects)
+	const { data } = $props<{data: PageData}>();
+	console.log(data)
+	const prospects = data.prospects;
 	let selectedProspects = $state<Prospect[]>([]);
 	let isLoading = $state(false);
 	let processStatus = $state<ProcessStatus>({ 
@@ -110,15 +110,7 @@
 			};
 		});
 		
-		// Update prospects status
-		$effect(() => {
-			prospects = prospects.map((p: Prospect) => {
-				if (selectedProspects.some((sp: Prospect) => sp.id === p.id)) {
-					return { ...p, status: 'Procesado' };
-				}
-				return p;
-			});
-		});
+
 
 		// Clear selection
 		$effect(() => {

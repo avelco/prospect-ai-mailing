@@ -14,11 +14,10 @@ export const load: PageLoad = async ({ fetch }) => {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
-		const prospects = await response.json();
+		const data = await response.json();
 
-		console.log(prospects)
 		return {
-			prospects,
+			prospects: data.prospects,
 			title: 'Procesar Prospectos',
 			meta: {
 				description: 'Seleccionar y procesar prospectos importados'
