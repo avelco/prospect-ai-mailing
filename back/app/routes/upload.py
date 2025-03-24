@@ -7,7 +7,7 @@ from app.models import Prospect        # Asumiendo que tienes el modelo en model
 
 upload = APIRouter()
 
-@upload.post("/upload/")
+@upload.post("/upload-csv/")
 async def upload_csv(file: UploadFile = File(...)):
     if file.content_type != 'text/csv':
         raise HTTPException(status_code=400, detail="Tipo de archivo inválido. Se espera un archivo CSV.")
