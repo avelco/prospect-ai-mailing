@@ -4,6 +4,8 @@ from ..services.prospects import (
     update_prospect_service,
     soft_delete_prospect_service
 )
+from ..services.prospects import get_prospects_service, get_prospect_by_id_service
+from ..services.ai import get_company_info
 from ..conection import SessionLocal
 from ..models import ProspectUpdate
 
@@ -46,3 +48,12 @@ async def delete_prospect(prospect_id: int):
         return deleted_prospect
     finally:
         db.close()
+@prospect.get("/prospects/{prospect_id}/company-info")
+async def get_prospect_company_info(prospect_id: str):
+    try:
+        prospect_data = await get_prospect_by_id_service(prospect_id)
+        company_info = await get_company_info(prospect_data)
+        return {"company_info": company_info}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
