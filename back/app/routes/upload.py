@@ -53,7 +53,8 @@ async def upload_csv(file: UploadFile = File(...)):
                 state=row.get("department_name", "").strip(),
                 country=row.get("country_name", "").strip(),
                 identification=identification,
-                status="new"  # Se establece el estado en "new"
+                status="new",  # Se establece el estado en "new"
+                deleted= False  # Se establece el estado en "new"
             )
             session.add(prospect)
         session.commit()
