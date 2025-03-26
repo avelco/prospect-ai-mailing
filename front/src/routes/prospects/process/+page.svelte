@@ -5,6 +5,11 @@
 		email: string;
 		company: string;
 		status: string;
+		phone?: string;
+		country?: string;
+		state?: string;
+		city?: string;
+		identification?: string;
 	};
 
 	type PageData = {
@@ -22,19 +27,30 @@
 		totalCount: number;
 	};
 
-	const { data } = $props<{data: PageData}>();
-	console.log(data)
-	const prospects = data.prospects;
+	// --- Props y estados ---
+	const { data } = $props<{ data: PageData }>();
+	let prospects = $state<Prospect[]>(data.prospects);
 	let selectedProspects = $state<Prospect[]>([]);
 	let isLoading = $state(false);
-	let processStatus = $state<ProcessStatus>({ 
-		status: 'idle', 
-		message: '', 
-		completedCount: 0, 
-		totalCount: 0 
+	let processStatus = $state<ProcessStatus>({
+		status: 'idle',
+		message: '',
+		completedCount: 0,
+		totalCount: 0
 	});
 
-	// Toggle selection of a prospect
+	// Estados para editar y eliminar
+	let showEditModal = $state(false);
+	let showDeleteConfirm = $state(false);
+	let prospectToEdit = $state<Prospect | null>(null);
+	let prospectToDelete = $state<Prospect | null>(null);
+
+	// Estados para notificaciones (en lugar de alert)
+	let showNotificationModal = $state(false);
+	let notificationMessage = $state("");
+	let notificationType = $state(""); // "success" o "error"
+
+	// --- Funciones de selección ---
 	function toggleSelection(prospect: Prospect) {
 		const index = selectedProspects.findIndex((p: Prospect) => p.id === prospect.id);
 		if (index === -1) {
@@ -48,12 +64,10 @@
 		}
 	}
 
-	// Check if a prospect is selected
 	function isSelected(prospect: Prospect): boolean {
 		return selectedProspects.some((p: Prospect) => p.id === prospect.id);
 	}
 
-	// Toggle selection of all prospects
 	function toggleSelectAll(): void {
 		if (selectedProspects.length === prospects.length) {
 			$effect(() => {
@@ -66,14 +80,15 @@
 		}
 	}
 
-	// Process the selected prospects
+	// --- Funciones de procesamiento ---
 	async function processProspects(): Promise<void> {
 		if (selectedProspects.length === 0) {
-			alert('Por favor, seleccione al menos un prospecto para procesar');
+			notificationMessage = 'Por favor, seleccione al menos un prospecto para procesar';
+			notificationType = 'error';
+			showNotificationModal = true;
 			return;
 		}
 
-		// Reset and start processing
 		$effect(() => {
 			processStatus = {
 				status: 'processing',
@@ -83,11 +98,8 @@
 			};
 		});
 
-		// Simulate processing each prospect
 		for (let i = 0; i < selectedProspects.length; i++) {
 			const prospect = selectedProspects[i];
-			
-			// Update status
 			$effect(() => {
 				processStatus = {
 					...processStatus,
@@ -95,12 +107,9 @@
 					completedCount: i
 				};
 			});
-
-			// Simulate API call delay
 			await new Promise<void>(resolve => setTimeout(resolve, 1000));
 		}
 
-		// Update completed status
 		$effect(() => {
 			processStatus = {
 				status: 'completed',
@@ -110,12 +119,81 @@
 			};
 		});
 		
-
-
-		// Clear selection
 		$effect(() => {
 			selectedProspects = [];
 		});
+	}
+
+	// --- Funciones para editar ---
+	function openEditModal(prospect: Prospect) {
+		prospectToEdit = { ...prospect };
+		showEditModal = true;
+	}
+
+	function closeEditModal() {
+		showEditModal = false;
+		prospectToEdit = null;
+	}
+
+	async function saveEdit() {
+		if (!prospectToEdit) return;
+		try {
+			const response = await fetch(`http://localhost:8000/prospects/${prospectToEdit.id}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(prospectToEdit)
+			});
+			if (!response.ok) throw new Error('Error al actualizar prospecto');
+			notificationMessage = 'Prospecto actualizado correctamente';
+			notificationType = 'success';
+			// Cerrar los modales de edición antes de mostrar la notificación
+			showEditModal = false;
+			showNotificationModal = true;
+		} catch (error) {
+			console.error(error);
+			notificationMessage = 'Error al actualizar prospecto';
+			notificationType = 'error';
+			showEditModal = false;
+			showNotificationModal = true;
+		}
+	}
+
+	// --- Funciones para eliminar (soft delete) ---
+	function openDeleteConfirm(prospect: Prospect) {
+		prospectToDelete = prospect;
+		showDeleteConfirm = true;
+	}
+
+	function closeDeleteConfirm() {
+		showDeleteConfirm = false;
+		prospectToDelete = null;
+	}
+
+	async function confirmDelete() {
+		if (!prospectToDelete) return;
+		try {
+			const response = await fetch(`http://localhost:8000/prospects/${prospectToDelete.id}`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!response.ok) throw new Error('Error al eliminar prospecto');
+			notificationMessage = 'Prospecto eliminado (soft delete)';
+			notificationType = 'success';
+			// Cerrar el modal de confirmación antes de mostrar la notificación
+			showDeleteConfirm = false;
+			showNotificationModal = true;
+			prospects = prospects.filter(p => p.id !== prospectToDelete.id);
+		} catch (error) {
+			console.error(error);
+			notificationMessage = 'Error al eliminar prospecto';
+			notificationType = 'error';
+			showDeleteConfirm = false;
+			showNotificationModal = true;
+		}
 	}
 </script>
 
@@ -126,7 +204,7 @@
 <div class="p-4 container mx-auto max-w-6xl">
 	<h1 class="text-3xl font-bold mb-6">Procesar Prospectos</h1>
 
-	<!-- Prospects List Card -->
+	<!-- Lista de Prospectos -->
 	<div class="card bg-base-200 shadow-xl mb-6">
 		<div class="card-body">
 			<h2 class="card-title flex justify-between">
@@ -162,6 +240,7 @@
 								<th>Email</th>
 								<th>Compañía</th>
 								<th>Estado</th>
+								<th>Acciones</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -182,6 +261,20 @@
 										<div class="badge {prospect.status === 'Nuevo' ? 'badge-accent' : 'badge-success'}">
 											{prospect.status}
 										</div>
+									</td>
+									<td class="flex justify-around pt-4">
+										<!-- Botón Editar -->
+										<button aria-label="Editar prospecto" onclick={() => openEditModal(prospect)} title="Editar">
+											<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L7 21H3v-4L16.732 3.732z" />
+											</svg>
+										</button>
+										<!-- Botón Eliminar -->
+										<button aria-label="Eliminar prospecto" onclick={() => openDeleteConfirm(prospect)} title="Eliminar">
+											<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a2 2 0 012 2v1a2 2 0 01-2 2H7a2 2 0 01-2-2v-1a2 2 0 012-2h10z" />
+											</svg>
+										</button>
 									</td>
 								</tr>
 							{/each}
@@ -206,7 +299,7 @@
 		</div>
 	</div>
 
-	<!-- Processing Status Card -->
+	<!-- Estado del procesamiento -->
 	<div class="card bg-base-100 shadow-xl">
 		<div class="card-body">
 			<h2 class="card-title">Estado del procesamiento</h2>
@@ -245,3 +338,73 @@
 		</div>
 	</div>
 </div>
+
+<!-- Modal para Editar Prospecto -->
+{#if showEditModal && prospectToEdit && !showNotificationModal}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h3 class="font-bold text-lg">Editar Prospecto</h3>
+			<div class="py-2">
+				<label for="name" class="label">Nombre</label>
+				<input id="name" type="text" class="input input-bordered w-full" bind:value={prospectToEdit.name} />
+			</div>
+			<div class="py-2">
+				<label for="email" class="label">Email</label>
+				<input id="email" type="email" class="input input-bordered w-full" bind:value={prospectToEdit.email} />
+			</div>
+			<div class="py-2">
+				<label for="phone" class="label">Teléfono</label>
+				<input id="phone" type="text" class="input input-bordered w-full" bind:value={prospectToEdit.phone} />
+			</div>
+			<div class="py-2">
+				<label for="country" class="label">País</label>
+				<input id="country" type="text" class="input input-bordered w-full" bind:value={prospectToEdit.country} />
+			</div>
+			<div class="py-2">
+				<label for="state" class="label">Estado</label>
+				<input id="state" type="text" class="input input-bordered w-full" bind:value={prospectToEdit.state} />
+			</div>
+			<div class="py-2">
+				<label for="city" class="label">Ciudad</label>
+				<input id="city" type="text" class="input input-bordered w-full" bind:value={prospectToEdit.city} />
+			</div>
+			<div class="py-2">
+				<label for="identification" class="label">Identificación</label>
+				<input id="identification" type="text" class="input input-bordered w-full" bind:value={prospectToEdit.identification} />
+			</div>
+			<div class="modal-action">
+				<button class="btn btn-primary" onclick={saveEdit}>Guardar</button>
+				<button class="btn" onclick={closeEditModal}>Cancelar</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Modal de Confirmación para Eliminar -->
+{#if showDeleteConfirm && prospectToDelete && !showNotificationModal}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h3 class="font-bold text-lg">Confirmar Eliminación</h3>
+			<p>¿Estás seguro de eliminar el prospecto <strong>{prospectToDelete.name}</strong>? La eliminación es de tipo soft delete.</p>
+			<div class="modal-action">
+				<button class="btn btn-error" onclick={confirmDelete}>Eliminar</button>
+				<button class="btn" onclick={closeDeleteConfirm}>Cancelar</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Modal de Notificación -->
+{#if showNotificationModal}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h3 class="font-bold text-lg">
+				{notificationType === 'error' ? 'Error' : 'Notificación'}
+			</h3>
+			<p>{notificationMessage}</p>
+			<div class="modal-action">
+				<button class="btn btn-primary" onclick={() => showNotificationModal = false}>Cerrar</button>
+			</div>
+		</div>
+	</div>
+{/if}
