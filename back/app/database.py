@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, Boolean, String, Text, ForeignKey, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -16,6 +16,7 @@ class Prospect(Base):
     country = Column(String)
     identification = Column(String, nullable=False, unique=True)
     status = Column(String, nullable=False)
+    deleted = Column(Boolean, default=False)
     
     # Define relationships to related tables
     details = relationship("ProspectDetail", back_populates="prospect", cascade="all, delete-orphan")
