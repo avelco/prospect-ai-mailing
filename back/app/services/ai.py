@@ -48,13 +48,13 @@ async def get_company_info(prospect: Dict) -> Optional[Dict]:
 
         - Revisa directorios empresariales como:
         - LinkedIn
-        - Crunchbase
-        - AngelList (para startups y tecnología)
-        - Yelp
+        - datacreditoempresas
+        - empresite.eleconomistaamerica.co
         - Páginas Amarillas
-        - Kompass
-        - Clutch (para negocios generales)
+        - emis.com/php/company-profile/CO
+        - informacolombia.com
         - Whois Lookup (para información de dominios)
+        - dnb.com/business-directory/
 
         ### Buscar en Redes Sociales:
         - Revisa LinkedIn: busca la empresa y su personal clave (CEO, ventas, soporte).
@@ -81,7 +81,7 @@ async def get_company_info(prospect: Dict) -> Optional[Dict]:
 
         company = {{
             'name': str,
-            'contact': {{
+            'contacts': {{
                 'name': str,
                 'role': str,
                 'mail': str
