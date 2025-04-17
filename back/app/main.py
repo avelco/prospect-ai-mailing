@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routes.mail import upload as mail_routes
 from .suspects.routes import suspect as suspect_routes
 from .auth.routes import user as user_routes
+from .products.routes import products as products_routes
+from .campaigns.routes import campaigns as campaigns_routes
 
 app = FastAPI()
 
@@ -20,6 +22,8 @@ app.include_router(
     tags=["suspects"],
 )
 app.include_router(user_routes, prefix="/auth", tags=["auth"])
+app.include_router(products_routes, prefix="/products", tags=["products"])
+app.include_router(campaigns_routes, prefix="/campaigns", tags=["campaigns"])
 
 @app.get("/")
 def read_root():

@@ -78,19 +78,18 @@ class ProductRead(ProductBase):
     class Config:
         from_attributes = True
 
-# --- Campaing Schemas ---
+# --- Campaign Schemas ---
 
-class CampaingBase(BaseModel):
+class CampaignBase(BaseModel):
     name: str
     description: Optional[str]
     status: Optional[str]
-    start_date: Optional[datetime.datetime]
-    end_date: Optional[datetime.datetime]
+    product_id: int
 
-class CampaingCreate(CampaingBase):
+class CampaignCreate(CampaignBase):
     pass
 
-class CampaingRead(CampaingBase):
+class CampaignRead(CampaignBase):
     id: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
@@ -103,7 +102,7 @@ class CampaingRead(CampaingBase):
 class ParticipantBase(BaseModel):
     suspect_id: int
     product_id: int
-    campaing_id: int
+    campaign_id: int
 
 class ParticipantCreate(ParticipantBase):
     pass

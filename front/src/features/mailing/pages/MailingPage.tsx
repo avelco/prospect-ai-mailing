@@ -3,7 +3,7 @@ import MailingTable from "../components/MailingTable"
 export const MailingPage = () => {
   return (
     <div>
-        <MailingTable data={[]} />
+        h1
     </div>
   )
 }

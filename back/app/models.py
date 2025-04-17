@@ -90,21 +90,22 @@ class Product(Base):
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
     participants = relationship("Participant", back_populates="product")
+    campaigns = relationship("Campaign", back_populates="product")
 
 
-class Campaing(Base):
-    __tablename__ = "campaings"
+class Campaign(Base):
+    __tablename__ = "campaigns"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)
     status = Column(String)
-    start_date = Column(DateTime)
-    end_date = Column(DateTime)
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
-    participants = relationship("Participant", back_populates="campaing")
+    participants = relationship("Participant", back_populates="campaign")
+    product = relationship("Product", back_populates="campaigns")
 
 
 class Participant(Base):
@@ -113,13 +114,13 @@ class Participant(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    campaing_id = Column(Integer, ForeignKey("campaings.id"), nullable=False)
+    campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
     suspect = relationship("Suspect", back_populates="participants")
     product = relationship("Product", back_populates="participants")
-    campaing = relationship("Campaing", back_populates="participants")
+    campaign = relationship("Campaign", back_populates="participants")
     interactions = relationship("Interaction", back_populates="participant")
     tasks = relationship("Task", back_populates="participant")
 
