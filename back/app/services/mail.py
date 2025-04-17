@@ -1,18 +1,23 @@
 import os
 from dotenv import load_dotenv
-import resend
+import requests
 
+# Load environment variables from .env file
 load_dotenv()
 print("Current Working Directory:", os.getcwd())
 print(".env exists:", os.path.isfile(".env"))
-if not os.environ.get("RESEND_API_KEY"):
-    raise ValueError("RESEND_API_KEY not found in .env file")
 
-resend.api_key = os.environ.get("RESEND_API_KEY")
+MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY")
+MAILGUN_DOMAIN = os.environ.get("MAILGUN_DOMAIN")
+
+if not MAILGUN_API_KEY:
+    raise ValueError("MAILGUN_API_KEY not found in .env file")
+if not MAILGUN_DOMAIN:
+    raise ValueError("MAILGUN_DOMAIN not found in .env file")
 
 
-def service_send_email(to_email: str, subject: str, html: str, from_email: str):
-    """Send an email using the Resend email service.
+def service_send_email(to_email: str, subject: str, html: str, from_email: str) -> str:
+    """Send an email using the Mailgun email service.
 
     Args:
         to_email (str): The recipient's email address
@@ -21,13 +26,17 @@ def service_send_email(to_email: str, subject: str, html: str, from_email: str):
         from_email (str): The sender's email address
 
     Returns:
-        str: The unique identifier of the sent email
+        str: The Mailgun message ID of the sent email
     """
-    params: resend.Emails.SendParams = {
-    "from": from_email,
-    "to": [to_email],
-    "subject": subject,
-    "html": html,
-    }
-    return resend.Emails.send(params)["id"]
-
+    response = requests.post(
+        f"https://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages",
+        auth=("api", MAILGUN_API_KEY),
+        data={
+            "from": from_email,
+            "to": [to_email],
+            "subject": subject,
+            "html": html,
+        },
+    )
+    response.raise_for_status()
+    return response.json().get("id", "")

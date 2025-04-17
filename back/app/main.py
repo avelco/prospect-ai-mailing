@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes.upload import upload as upload_routes
 from .routes.mail import upload as mail_routes
-from .routes.prospect import prospect as prospect_routes
+from .suspects.routes import suspect as suspect_routes
 
 app = FastAPI()
 
@@ -14,13 +13,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(upload_routes)
 app.include_router(mail_routes)
 app.include_router(
-    prospect_routes,
-    tags=["prospects"],
+    suspect_routes,
+    tags=["suspects"],
 )
 
 @app.get("/")
 def read_root():
-    return {"message": "¡Hola, FastAPI!"}
+    return {"message": "¡Hola, ProspectAI!"}

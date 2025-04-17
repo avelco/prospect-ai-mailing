@@ -24,7 +24,7 @@
 		if (!file) return;
 
 		if (!file.name.endsWith('.csv')) {
-			error = 'Please upload a CSV file';
+			error = 'Por favor carga un archivo de tipo CSV';
 			return;
 		}
 
@@ -44,7 +44,7 @@
 			const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
 
 			if (rows.length === 0) {
-				error = 'CSV file is empty';
+				error = 'El archivo CSV está vacío';
 				return;
 			}
 
@@ -59,7 +59,7 @@
 			});
 
 			if (headers.some(header => header === '')) {
-				error = 'CSV headers cannot be empty';
+				error = 'Los encabezados del CSV no pueden estar vacíos';
 				return;
 			}
 
@@ -75,7 +75,7 @@
 				});
 
 				if (values.length !== headers.length) {
-					error = `Row ${i + 1} has ${values.length} columns (expected ${headers.length})`;
+					error = `La fila ${i + 1} tiene ${values.length} columnas (se esperaban ${headers.length})`;
 					data.length = 0;
 					break;
 				}
@@ -88,7 +88,7 @@
 			}
 
 			if (data.length === 0 && error === '') {
-				error = 'No valid data rows found';
+				error = 'No se encontraron filas validas';
 			}
 
 			if (error) return;
@@ -99,7 +99,7 @@
 			// Se guarda el archivo para luego subirlo al backend
 			csvFile = file;
 		} catch (e) {
-			error = 'Error processing CSV file';
+			error = 'Error al procesar el archivo CSV';
 			console.error(e);
 		} finally {
 			isLoading = false;
@@ -109,9 +109,27 @@
 	// Función para subir el CSV al endpoint
 	async function processUpload() {
 		if (!csvFile) {
-			error = "No CSV file loaded";
+			error = "No se ha subido un archivo CSV";
 			return;
 		}
+
+		// Validar duplicados en client_document_number
+		const seen = new Set<string>();
+		const duplicates: string[] = [];
+		for (const row of csvData) {
+			const doc = row['client_document_number']?.trim();
+			if (!doc) continue;
+			if (seen.has(doc)) {
+				duplicates.push(doc);
+			} else {
+				seen.add(doc);
+			}
+		}
+		if (duplicates.length > 0) {
+			error = `Error: No se puede procesar debido a que hay documentos duplicados en la columna client_document_number: ${[...new Set(duplicates)].join(', ')}`;
+			return;
+		}
+
 		try {
 			isLoading = true;
 			error = '';
@@ -137,7 +155,7 @@
 
 			if (!response.ok) {
 				// Si hay error, asignamos el mensaje al error (esto incluye 500)
-				error = result.detail || result.message || "Error uploading CSV file";
+				error = result.detail || result.message || "Error al subir el archivo CSV";
 				return;
 			}
 
@@ -149,7 +167,7 @@
 			// Mostramos la respuesta del endpoint
 			backendResponse = result.message;
 		} catch (e) {
-			error = "Error uploading CSV file";
+			error = "Error al subir el archivo CSV";
 			console.error(e);
 		} finally {
 			isLoading = false;

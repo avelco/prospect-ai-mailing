@@ -52,33 +52,25 @@
 
 	// --- Funciones de selección ---
 	function toggleSelection(prospect: Prospect) {
-		const index = selectedProspects.findIndex((p: Prospect) => p.id === prospect.id);
-		if (index === -1) {
-			$effect(() => {
-				selectedProspects = [...selectedProspects, prospect];
-			});
-		} else {
-			$effect(() => {
-				selectedProspects = selectedProspects.filter((p: Prospect) => p.id !== prospect.id);
-			});
-		}
+	const index = selectedProspects.findIndex((p: Prospect) => p.id === prospect.id);
+	if (index === -1) {
+		selectedProspects = [...selectedProspects, prospect];
+	} else {
+		selectedProspects = selectedProspects.filter((p: Prospect) => p.id !== prospect.id);
 	}
+}
 
-	function isSelected(prospect: Prospect): boolean {
-		return selectedProspects.some((p: Prospect) => p.id === prospect.id);
-	}
+function isSelected(prospect: Prospect): boolean {
+	return selectedProspects.some((p: Prospect) => p.id === prospect.id);
+}
 
-	function toggleSelectAll(): void {
-		if (selectedProspects.length === prospects.length) {
-			$effect(() => {
-				selectedProspects = [];
-			});
-		} else {
-			$effect(() => {
-				selectedProspects = [...prospects];
-			});
-		}
+function toggleSelectAll(): void {
+	if (selectedProspects.length === prospects.length) {
+		selectedProspects = [];
+	} else {
+		selectedProspects = [...prospects];
 	}
+}
 
 	// --- Funciones de procesamiento ---
 	async function processProspects(): Promise<void> {
@@ -186,7 +178,7 @@
 			// Cerrar el modal de confirmación antes de mostrar la notificación
 			showDeleteConfirm = false;
 			showNotificationModal = true;
-			prospects = prospects.filter(p => p.id !== prospectToDelete.id);
+			prospects = prospects.filter(p => p.id !== prospectToDelete?.id);
 		} catch (error) {
 			console.error(error);
 			notificationMessage = 'Error al eliminar prospecto';

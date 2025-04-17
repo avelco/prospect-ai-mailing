@@ -1,12 +1,36 @@
-# models.py
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    Text,
+    ForeignKey,
+    JSON,
+)
+from sqlalchemy.orm import relationship
 from app.conection import Base
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
+import datetime
 
-class Prospect(Base):
-    __tablename__ = 'prospects'
-    
+# --- SQLAlchemy ORM Models ---
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    last_name = Column(String)
+    email = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+
+class Suspect(Base):
+    __tablename__ = "suspects"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String, nullable=False)
     name = Column(String)
@@ -16,15 +40,109 @@ class Prospect(Base):
     country = Column(String)
     identification = Column(String, nullable=False, unique=True)
     status = Column(String, nullable=False)
-    deleted = Column(Boolean, default=False)  # Campo para soft delete
+    deleted = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
-# Modelo Pydantic para actualización parcial de un prospecto
-class ProspectUpdate(BaseModel):
-    email: Optional[str] = None
-    name: Optional[str] = None
-    phone: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
-    identification: Optional[str] = None
-    status: Optional[str] = None
+    details = relationship("SuspectDetail", back_populates="suspect", uselist=False)
+    emails = relationship("Email", back_populates="suspect")
+    participants = relationship("Participant", back_populates="suspect")
+
+
+class SuspectDetail(Base):
+    __tablename__ = "suspect_details"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
+    description = Column(Text)
+    llm = Column(String)
+    score = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    suspect = relationship("Suspect", back_populates="details")
+
+
+class Email(Base):
+    __tablename__ = "emails"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
+    body = Column(Text)
+    subject = Column(String)
+    status = Column(String)
+    send_id = Column(String)
+    send_events = Column(JSON)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    suspect = relationship("Suspect", back_populates="emails")
+
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    status = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    participants = relationship("Participant", back_populates="product")
+
+
+class Campaing(Base):
+    __tablename__ = "campaings"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    status = Column(String)
+    start_date = Column(DateTime)
+    end_date = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    participants = relationship("Participant", back_populates="campaing")
+
+
+class Participant(Base):
+    __tablename__ = "participants"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    campaing_id = Column(Integer, ForeignKey("campaings.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    suspect = relationship("Suspect", back_populates="participants")
+    product = relationship("Product", back_populates="participants")
+    campaing = relationship("Campaing", back_populates="participants")
+    interactions = relationship("Interaction", back_populates="participant")
+    tasks = relationship("Task", back_populates="participant")
+
+
+class Interaction(Base):
+    __tablename__ = "interactions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    participant_id = Column(Integer, ForeignKey("participants.id"), nullable=False)
+    description = Column(Text)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    participant = relationship("Participant", back_populates="interactions")
+
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    participant_id = Column(Integer, ForeignKey("participants.id"), nullable=False)
+    description = Column(Text)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    participant = relationship("Participant", back_populates="tasks")
