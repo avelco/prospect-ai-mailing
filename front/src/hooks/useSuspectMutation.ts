@@ -7,7 +7,7 @@ const uploadSuspectCSV = async (file: File) => {
   formData.append("file", file);
 
   try {
-    const response = await api.post('/upload-csv/', formData, {
+    const response = await api.post('/suspects/upload-csv/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
