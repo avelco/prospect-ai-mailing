@@ -3,16 +3,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { FaRobot, FaBars } from "react-icons/fa";
 import { Link, useNavigate } from "react-router";
 import { useSessionStore } from "../stores/authStore";
+import { Campaign } from "./Campaign";
 
 const menuOptions = [
 	{ name: "Mailing", href: "mailing" },
 	{ name: "Prospectos", href: "prospects" },
 	{ name: "Tratos", href: "deals" },
-];
-
-const userMenu = [
-	{ name: "Settings", href: "settings" },
-	{ name: "Logout", href: "logout" },
 ];
 
 const defaultAvatar =
@@ -23,6 +19,7 @@ export const Navbar: React.FC = () => {
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
 	const userMenuRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
+
 
 	// Close user menu on outside click
 	useEffect(() => {
@@ -43,15 +40,15 @@ export const Navbar: React.FC = () => {
 	}, [userMenuOpen]);
 
 	return (
-		<nav className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+		<nav className="bg-white border-b border-gray-200 px-4 py-2 flex items-center relative">
 			{/* Logo */}
-			<div className="flex items-center gap-2">
+			<div className="flex items-center gap-2 flex-shrink-0">
 				<FaRobot className="text-blue-600 text-2xl" />
 				<span className="font-bold text-xl text-gray-800">ProspectAI</span>
 			</div>
 
-			{/* Desktop Menu */}
-			<div className="hidden md:flex gap-6">
+			{/* Desktop Menu - Centered */}
+			<div className="hidden md:flex gap-6 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
 				{menuOptions.map((option) => (
 					<a
 						key={option.name}
@@ -63,30 +60,39 @@ export const Navbar: React.FC = () => {
 				))}
 			</div>
 
-			{/* User Avatar & Dropdown */}
-			<div className="relative" ref={userMenuRef}>
-				<img
-					src={defaultAvatar}
-					alt="User"
-					className="w-9 h-9 rounded-full cursor-pointer border-2 border-gray-200"
-					onClick={() => setUserMenuOpen((open) => !open)}
-				/>
-				{userMenuOpen && (
-					<div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-20">
-						<Link
-							to="settings"
-							className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-						>
-							Settings
-						</Link>
-						<div
-							className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-							onClick={() => {useSessionStore.getState().clearSession(); navigate("/login"); }}
-						>
-							Logout
+			{/* Campaign select and user avatar */}
+			<div className="flex items-center ml-auto gap-0 flex-shrink-0">
+				{/* Campaign select */}
+				<Campaign />
+
+				{/* User Avatar & Dropdown */}
+				<div className="relative" ref={userMenuRef}>
+					<img
+						src={defaultAvatar}
+						alt="User"
+						className="w-9 h-9 rounded-full cursor-pointer border-2 border-gray-200 ml-2"
+						onClick={() => setUserMenuOpen((open) => !open)}
+					/>
+					{userMenuOpen && (
+						<div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-20">
+							<Link
+								to="settings"
+								className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+							>
+								Settings
+							</Link>
+							<div
+								className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+								onClick={() => {
+									useSessionStore.getState().clearSession();
+									navigate("/login");
+								}}
+							>
+								Logout
+							</div>
 						</div>
-					</div>
-				)}
+					)}
+				</div>
 			</div>
 
 			{/* Hamburger for Mobile */}
@@ -114,6 +120,7 @@ export const Navbar: React.FC = () => {
 				</div>
 			)}
 		</nav>
+
 	);
 };
 
