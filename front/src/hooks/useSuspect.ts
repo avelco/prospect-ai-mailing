@@ -1,5 +1,5 @@
 // src/services/suspects.ts
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SuspectResult } from '../interfaces/SuspectInterface';
 import api from '../services/axios';
 
@@ -19,4 +19,16 @@ export const useSuspects = (limit: number, offset: number) => {
     queryKey: ['suspects', limit, offset],
     queryFn: () => fetchSuspects(limit, offset),
   });
+};
+
+export const useSuspectDelete = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (id: number) => {
+			await api.delete(`/suspects/${id}`);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["suspects"] });
+		},
+	});
 };

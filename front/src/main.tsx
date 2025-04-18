@@ -7,7 +7,7 @@ import {
 import './index.css'
 import { HomePage } from './features/home/pages/HomePage';
 import { PrivateLayout } from './layouts/PrivateLayout';
-import { MailingPage } from './features/mailing/pages/MailingPage';
+import { SuspectsPage } from './features/suspects/pages/SuspectsPage';
 import LoginPage from './features/auth/pages/LoginPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -25,7 +25,7 @@ const router = createBrowserRouter([
 				Component: PrivateLayout,
 				children: [
 					{ path: "/home", Component: HomePage },
-					{ path: "/mailing", Component: MailingPage },
+					{ path: "/suspects", Component: SuspectsPage },
 					{ path: "/settings", Component: SettingsPage },
 				],
 			}

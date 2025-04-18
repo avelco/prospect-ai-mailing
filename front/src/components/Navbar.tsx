@@ -6,6 +6,7 @@ import { useSessionStore } from "../stores/authStore";
 import { Campaign } from "./Campaign";
 
 const menuOptions = [
+	{ name: "Suspects", href: "suspects" },
 	{ name: "Mailing", href: "mailing" },
 	{ name: "Prospectos", href: "prospects" },
 	{ name: "Tratos", href: "deals" },
