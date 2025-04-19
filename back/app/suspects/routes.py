@@ -19,13 +19,14 @@ suspect = APIRouter()
 async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db) ):
     return await process_csv_upload_service(file, db)
 
-@suspect.get("/suspects")
+@suspect.get("/suspects/{campaign_id}")
 async def get_suspects(
+    campaign_id: int,
     db: Session = Depends(get_db),
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ):
-    suspects, total = await get_suspects_service(db, limit=limit, offset=offset)
+    suspects, total = await get_suspects_service(db, limit=limit, offset=offset, campaign_id=campaign_id)
     pages = math.ceil(total / limit) if limit else 1
     current_page = (offset // limit) + 1 if limit else 1
     return {

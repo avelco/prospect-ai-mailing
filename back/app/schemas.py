@@ -19,6 +19,30 @@ class UserRead(UserBase):
 
     class Config:
         from_attributes = True
+        
+# --- Suspect Schemas (with nested details/emails/participants for read) ---
+
+class SuspectBase(BaseModel):
+    email: str
+    name: Optional[str]
+    phone: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    country: Optional[str]
+    identification: str
+    status: str
+    deleted: Optional[bool] = False
+
+class SuspectCreate(SuspectBase):
+    pass
+
+class SuspectRead(SuspectBase):
+    id: int
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+    class Config:
+        from_attributes = True
 
 # --- SuspectDetail Schemas ---
 
@@ -46,7 +70,9 @@ class EmailBase(BaseModel):
     body: Optional[str]
     subject: Optional[str]
     status: Optional[str]
-    send_id: Optional[str]
+    to: Optional[str]
+    user_id: Optional[int]
+    provider_id: Optional[str]
     send_events: Optional[Any]
 
 class EmailCreate(EmailBase):
@@ -103,18 +129,30 @@ class ParticipantBase(BaseModel):
     suspect_id: int
     product_id: int
     campaign_id: int
+    status: Optional[str]
 
-class ParticipantCreate(ParticipantBase):
-    pass
-
+class ParticipantCreate(BaseModel):
+    suspect_id: int
+    campaign_id: int
+    product_id: Optional[int] = None
+    status: Optional[str]
+    
 class ParticipantRead(ParticipantBase):
     id: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
+    suspect: Optional[SuspectRead]
 
     class Config:
         from_attributes = True
 
+class PaginatedParticipants(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    pages: int
+    current_page: int
+    participants: List[ParticipantRead]
 # --- Interaction Schemas ---
 
 class InteractionBase(BaseModel):
@@ -145,33 +183,6 @@ class TaskRead(TaskBase):
     id: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
-
-    class Config:
-        from_attributes = True
-
-# --- Suspect Schemas (with nested details/emails/participants for read) ---
-
-class SuspectBase(BaseModel):
-    email: str
-    name: Optional[str]
-    phone: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
-    identification: str
-    status: str
-    deleted: Optional[bool] = False
-
-class SuspectCreate(SuspectBase):
-    pass
-
-class SuspectRead(SuspectBase):
-    id: int
-    created_at: Optional[datetime.datetime]
-    updated_at: Optional[datetime.datetime]
-    details: Optional[SuspectDetailRead]
-    emails: Optional[List[EmailRead]]
-    participants: Optional[List[ParticipantRead]]
 
     class Config:
         from_attributes = True

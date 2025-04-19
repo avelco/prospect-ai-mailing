@@ -6,6 +6,7 @@ type CampaignFormInputs = {
 	name: string;
 };
 
+
 const createCampaign = async (data: CampaignFormInputs) => {
 	try {
 		const response = await api.post("/campaigns", data);
@@ -55,3 +56,4 @@ export const useCampaignDelete = () => {
 		},
 	});
 };
+

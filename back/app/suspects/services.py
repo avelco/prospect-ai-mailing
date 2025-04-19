@@ -15,11 +15,11 @@ from .queries import (
     bulk_create_suspects_from_rows
 )
 
-async def get_suspects_service(db: Session, limit: int = 10, offset: int = 0) -> List[Suspect]:
+async def get_suspects_service(db: Session, limit: int = 10, offset: int = 0, campaign_id: int = None) -> List[Suspect]:
     """
     Recupera todos los suspectos que no hayan sido eliminados (soft delete).
     """
-    return await get_suspects_query(db, limit=limit, offset=offset)
+    return await get_suspects_query(db, limit=limit, offset=offset, campaign_id=campaign_id)
 
 async def update_suspect_service(db: Session, suspect_id: int, suspect_update) -> Optional[Suspect]:
     """

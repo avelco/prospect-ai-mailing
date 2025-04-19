@@ -1,14 +1,33 @@
-from ..models import Suspect
-from sqlalchemy import or_
+from ..models import Suspect, Participant
+from sqlalchemy import or_, exists
 from typing import Optional, List
 
 # Returns all non-deleted suspects
-async def get_suspects_query(db, limit: int = 10, offset: int = 0) -> List[Suspect]:
-    base_query = db.query(Suspect).filter(
-        or_(Suspect.deleted == False, Suspect.deleted.is_(None))
+async def get_suspects_query(
+    db, limit: int = 10, offset: int = 0, campaign_id: int = None
+):
+    # Subquery: does a participant exist for this suspect and campaign?
+    participant_exists = (
+        db.query(Participant.id)
+        .filter(
+            Participant.suspect_id == Suspect.id,
+            Participant.campaign_id == campaign_id,
+        )
+        .exists()
     )
+
+    base_query = db.query(Suspect).filter(
+        or_(Suspect.deleted == False, Suspect.deleted.is_(None)),
+        ~participant_exists  # Exclude suspects who are participants in this campaign
+    )
+
     total = base_query.count()
-    suspects = base_query.offset(offset).limit(limit).all()
+    suspects = (
+        base_query.offset(offset)
+        .limit(limit)
+        .all()
+    )
+
     return suspects, total
 
 # Returns a single non-deleted suspect by id

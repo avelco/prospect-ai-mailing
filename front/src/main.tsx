@@ -12,8 +12,16 @@ import LoginPage from './features/auth/pages/LoginPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import SettingsPage from './features/settings/pages/SettingsPage';
+import DealsPage from './features/deals/pages/DealsPage';
+import MailingPage from './features/mailing/pages/MailingPage';
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+	defaultOptions: {
+	  queries: {
+		refetchOnWindowFocus: false,
+	  },
+	},
+  });
 
 const router = createBrowserRouter([
 
@@ -27,6 +35,8 @@ const router = createBrowserRouter([
 					{ path: "/home", Component: HomePage },
 					{ path: "/suspects", Component: SuspectsPage },
 					{ path: "/settings", Component: SettingsPage },
+					{ path: "/deals", Component: DealsPage },
+					{ path: "/mailing", Component: MailingPage },
 				],
 			}
 		]

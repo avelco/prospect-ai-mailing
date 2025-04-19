@@ -27,6 +27,8 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
+    emails = relationship("Email", back_populates="user")
+
 
 class Suspect(Base):
     __tablename__ = "suspects"
@@ -70,13 +72,16 @@ class Email(Base):
     suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
     body = Column(Text)
     subject = Column(String)
+    to = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     status = Column(String)
-    send_id = Column(String)
+    provider_id = Column(String)
     send_events = Column(JSON)
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
     suspect = relationship("Suspect", back_populates="emails")
+    user = relationship("User", back_populates="emails")
 
 
 class Product(Base):
@@ -115,6 +120,7 @@ class Participant(Base):
     suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=False)
+    status = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
