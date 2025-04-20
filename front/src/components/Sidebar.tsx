@@ -1,10 +1,11 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { TbMoodSearch, TbUserQuestion } from "react-icons/tb";
-import { FaMailBulk, FaRegHandshake } from "react-icons/fa";
+import { FaRegHandshake } from "react-icons/fa";
 import { RiUserStarLine } from "react-icons/ri";
 import { Campaign } from "./Campaign";
 import { useSessionStore } from "../stores/authStore";
+import { FaUsersBetweenLines } from "react-icons/fa6";
 
 interface SidebarProps {
     open: boolean;
@@ -80,17 +81,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                     <span className="grow">Suspects</span>
                 </Link>
                 <Link
-                    to="/mailing"
+                    to="/participants"
                     className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-800 hover:bg-blue-50 active:text-slate-950"
                 >
-                    <FaMailBulk
-                        className={`inline-block size-5 ${isActive("/mailing")
+                    <FaUsersBetweenLines
+                        className={`inline-block size-5 ${isActive("/participants")
                                 ? "text-blue-600"
                                 : "text-slate-300 group-hover:text-blue-600"
                             }`}
                     />
-                    <span className="grow">Mailing</span>
-                    <span className="text-blue-500">•</span>
+                    <span className="grow">Participantes</span>
                 </Link>
                 <Link
                     to="/leads"

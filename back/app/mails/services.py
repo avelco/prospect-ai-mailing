@@ -6,7 +6,9 @@ import re
 
 from sqlalchemy.orm import Session
 
-from app.mails.queries import store_draft
+from app.mails.queries import delete_draft, get_drafts, store_draft
+from app.models import Suspect
+from app.schemas import SuspectBase
 
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -120,11 +122,22 @@ def extract_json(text):
     # Si no hay bloque, intenta devolver el texto tal cual
     return text.strip()
 
-def store_draft_service(db: Session, drafts: list[dict], suspect_id: int):
-    result = store_draft(db, drafts, suspect_id)
+def store_draft_service(db: Session, drafts: list[dict], participant_id: int) -> SuspectBase | None:
+    result = store_draft(db, drafts, participant_id)
     
     if(result is not None):
         return result
     
     return None
     
+def delete_draft_service(db: Session, participant_id: int) -> bool:
+    result = delete_draft(db, participant_id)
+    
+    if(result):
+        return True
+    
+    return False
+
+def get_draft_service(db: Session, participant_id: int) -> list[dict] | None:
+    drafts = get_drafts(db, participant_id)
+    return drafts

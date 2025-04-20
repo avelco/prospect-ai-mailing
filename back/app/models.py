@@ -47,7 +47,6 @@ class Suspect(Base):
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
     details = relationship("SuspectDetail", back_populates="suspect", uselist=False)
-    emails = relationship("Email", back_populates="suspect")
     participants = relationship("Participant", back_populates="suspect")
 
 
@@ -69,7 +68,7 @@ class Email(Base):
     __tablename__ = "emails"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
+    participant_id = Column(Integer, ForeignKey("participants.id"), nullable=False)
     body = Column(Text)
     subject = Column(String)
     to = Column(String)
@@ -80,7 +79,7 @@ class Email(Base):
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
-    suspect = relationship("Suspect", back_populates="emails")
+    participant = relationship("Participant", back_populates="emails")
     user = relationship("User", back_populates="emails")
 
 
@@ -94,8 +93,8 @@ class Product(Base):
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
-    participants = relationship("Participant", back_populates="product")
     campaigns = relationship("Campaign", back_populates="product")
+    participants = relationship("Participant", back_populates="product")
 
 
 class Campaign(Base):
@@ -129,6 +128,7 @@ class Participant(Base):
     campaign = relationship("Campaign", back_populates="participants")
     interactions = relationship("Interaction", back_populates="participant")
     tasks = relationship("Task", back_populates="participant")
+    emails = relationship("Email", back_populates="participant")
 
 
 class Interaction(Base):

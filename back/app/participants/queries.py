@@ -2,8 +2,10 @@
 
 
 from sqlalchemy.orm import Session
-from app.models import Participant, Suspect, Campaign
+from app.models import Participant, Suspect, Campaign, Email
 from app.schemas import ParticipantCreate
+from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import exists, and_
 
 def store_participant(db: Session, participant: ParticipantCreate):
     participant = Participant(**participant.model_dump())
@@ -11,17 +13,39 @@ def store_participant(db: Session, participant: ParticipantCreate):
     db.commit()
     return participant
     
-from sqlalchemy.orm import joinedload
 
 def get_participants(
     db: Session, campaign_id: int = None, limit: int = 10, offset: int = 0
 ):
-    base_query = db.query(Participant).options(joinedload(Participant.suspect)).filter(
-        Participant.campaign_id == campaign_id
+    # Subquery to check if a participant has a 'draft' email
+    has_draft_email = (
+        db.query(Email.id)
+        .filter(
+            Email.participant_id == Participant.id,
+            Email.status == 'draft'
+        )
+        .exists()
     )
+
+    # Add the 'has_email' column to the query
+    base_query = (
+        db.query(
+            Participant,
+            has_draft_email.label('has_email')
+        )
+        .options(joinedload(Participant.suspect))
+        .filter(Participant.campaign_id == campaign_id)
+    )
+
     total = base_query.count()
     participants = base_query.offset(offset).limit(limit).all()
-    return participants, total
+
+    # Attach 'has_email' as an attribute to each participant
+    for participant, has_email in participants:
+        setattr(participant, 'has_email', has_email)
+
+    # Return only the participant objects (now with 'has_email' attribute)
+    return [participant for participant, _ in participants], total
 
 def delete_participant(db: Session, participant_id: int):
     participant = db.query(Participant).filter(Participant.id == participant_id).first()
@@ -35,6 +59,8 @@ def get_product_id_from_campaign(db: Session, campaign_id: int):
     return db.query(Campaign).filter(Campaign.id == campaign_id).first().product_id
 
 def get_suspect_by_participant_id(db: Session, participant_id: int):
-    suspect_id = db.query(Participant).filter(Participant.id == participant_id).first().suspect_id
-    return db.query(Suspect).filter(Suspect.id == suspect_id).first()
+    participant = db.query(Participant).filter(Participant.id == participant_id).first()
+    if not participant:
+        return None
+    return db.query(Suspect).filter(Suspect.id == participant.suspect_id).first()
     

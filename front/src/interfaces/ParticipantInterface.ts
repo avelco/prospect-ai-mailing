@@ -18,4 +18,5 @@ export interface Participant {
     created_at:  Date;
     updated_at:  Date;
     suspect:     Suspect;
+    has_email:    boolean;
 }

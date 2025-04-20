@@ -63,29 +63,6 @@ class SuspectDetailRead(SuspectDetailBase):
     class Config:
         from_attributes = True
 
-# --- Email Schemas ---
-
-class EmailBase(BaseModel):
-    suspect_id: int
-    body: Optional[str]
-    subject: Optional[str]
-    status: Optional[str]
-    to: Optional[str]
-    user_id: Optional[int]
-    provider_id: Optional[str]
-    send_events: Optional[Any]
-
-class EmailCreate(EmailBase):
-    pass
-
-class EmailRead(EmailBase):
-    id: int
-    created_at: Optional[datetime.datetime]
-    updated_at: Optional[datetime.datetime]
-
-    class Config:
-        from_attributes = True
-
 # --- Product Schemas ---
 
 class ProductBase(BaseModel):
@@ -186,3 +163,28 @@ class TaskRead(TaskBase):
 
     class Config:
         from_attributes = True
+        
+# --- Email Schemas ---
+
+class EmailBase(BaseModel):
+    participant_id: int
+    body: Optional[str]
+    subject: Optional[str]
+    status: Optional[str]
+    to: Optional[str]
+    user_id: Optional[int]
+    provider_id: Optional[str]
+    send_events: Optional[Any]
+
+class EmailCreate(EmailBase):
+    pass
+
+class EmailRead(EmailBase):
+    id: int
+    participant: Optional[ParticipantRead]
+    created_at: Optional[datetime.datetime]
+    updated_at: Optional[datetime.datetime]
+
+    class Config:
+        from_attributes = True
+        

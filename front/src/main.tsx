@@ -13,8 +13,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import SettingsPage from './features/settings/pages/SettingsPage';
 import DealsPage from './features/deals/pages/DealsPage';
-import MailingPage from './features/mailing/pages/MailingPage';
-
+import ParticipantPage from './features/participants/pages/ParticipantPage';
+import { ToastContainer } from 'react-toastify';
 const queryClient = new QueryClient({
 	defaultOptions: {
 	  queries: {
@@ -36,7 +36,7 @@ const router = createBrowserRouter([
 					{ path: "/suspects", Component: SuspectsPage },
 					{ path: "/settings", Component: SettingsPage },
 					{ path: "/deals", Component: DealsPage },
-					{ path: "/mailing", Component: MailingPage },
+					{ path: "/participants", Component: ParticipantPage },
 				],
 			}
 		]
@@ -47,6 +47,7 @@ createRoot(document.getElementById('root')!).render(
 		<QueryClientProvider client={queryClient}>
 			<RouterProvider router={router} />
 			<ReactQueryDevtools initialIsOpen={false} />
+			<ToastContainer />
 		</QueryClientProvider>
 	</StrictMode>,
 )
