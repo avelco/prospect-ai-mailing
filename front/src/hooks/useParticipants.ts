@@ -13,7 +13,7 @@ type AddParticipantInputs = {
 
 
 const fetchParticipants = async (limit: number, offset: number, campaign: string): Promise<ParticipantResult> => {
-	const response = await api.get(`/participants/${campaign}`, {
+	const response = await api.get(`/participants/${campaign}/participants`, {
 		params: { limit, offset },
 		headers: { accept: "application/json" },
 	});
@@ -28,6 +28,41 @@ export const useParticipants = (limit: number, offset: number) => {
 		enabled: !!campaign
 	});
 };
+
+const fetchParticipantsWithDrafts = async (limit: number, offset: number, campaign: string): Promise<ParticipantResult> => {
+	const response = await api.get(`/participants/${campaign}/drafts`, {
+		params: { limit, offset },
+		headers: { accept: "application/json" },
+	});
+	return response.data;
+};
+
+export const useParticipantsWithDrafts = (limit: number, offset: number) => {
+	const campaign = useCampaignStore((state) => state.campaign);
+	return useQuery({
+		queryKey: ["participantsWithDrafts", limit, offset, campaign],
+		queryFn: () => fetchParticipantsWithDrafts(limit, offset, campaign!),
+		enabled: !!campaign
+	});
+};
+
+const fetchParticipantsWithMail = async (limit: number, offset: number, campaign: string): Promise<ParticipantResult> => {
+	const response = await api.get(`/participants/${campaign}/mails`, {
+		params: { limit, offset },
+		headers: { accept: "application/json" },
+	});
+	return response.data;
+};
+
+export const useParticipantsWithMail = (limit: number, offset: number) => {
+	const campaign = useCampaignStore((state) => state.campaign);
+	return useQuery({
+		queryKey: ["participantsWithEmail", limit, offset, campaign],
+		queryFn: () => fetchParticipantsWithMail(limit, offset, campaign!),
+		enabled: !!campaign
+	});
+};
+
 
 export const useDeleteParticipant = (limit: number, offset: number) => {
 	const campaign = useCampaignStore((state) => state.campaign);

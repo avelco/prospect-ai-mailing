@@ -1,8 +1,14 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from requests import Session
 
 from app.dependencies import get_db
-from app.mails.services import delete_draft_service, generate_cold_email_draft_service, get_draft_service, store_draft_service
+from app.mails.services import (
+    delete_draft_service, 
+    generate_cold_email_draft_service, 
+    get_draft_service, 
+    store_draft_service, 
+    send_email_service
+)
 from app.participants.queries import get_suspect_by_participant_id
 
 
@@ -32,3 +38,9 @@ async def get_drafts(participant_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Participant ID is required")
     drafts = get_draft_service(db, participant_id)
     return drafts
+
+@mails.post("/send/{mail_id}")
+async def send_email(mail_id: int, db: Session = Depends(get_db)):
+    if not mail_id:
+        raise HTTPException(status_code=400, detail="Mail ID is required")
+    return send_email_service(db, mail_id)

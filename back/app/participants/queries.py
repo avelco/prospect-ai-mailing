@@ -47,6 +47,73 @@ def get_participants(
     # Return only the participant objects (now with 'has_email' attribute)
     return [participant for participant, _ in participants], total
 
+def get_participants_with_drafts(
+    db: Session, campaign_id: int = None, limit: int = 10, offset: int = 0
+):
+    # Subquery to check if a participant has a 'draft' email
+    has_draft_email = (
+        db.query(Email.id)
+        .filter(
+            Email.participant_id == Participant.id,
+            Email.status == 'draft'
+        )
+        .exists()
+    )
+
+    # Add the 'has_email' column to the query
+    base_query = (
+        db.query(
+            Participant,
+            has_draft_email.label('has_email')
+        )
+        .options(joinedload(Participant.suspect))
+        .filter(Participant.campaign_id == campaign_id)
+    )
+
+    total = base_query.count()
+    participants = base_query.offset(offset).limit(limit).all()
+
+    # Attach 'has_email' as an attribute to each participant
+    for participant, has_email in participants:
+        setattr(participant, 'has_email', has_email)
+
+    # Return only the participant objects (now with 'has_email' attribute)
+    return [participant for participant, _ in participants], total
+
+def get_participants_with_mail(
+    db: Session, campaign_id: int = None, limit: int = 10, offset: int = 0
+):
+    # Subquery to check if a participant has a 'mail' email
+    has_email = (
+        db.query(Email.id)
+        .filter(
+            Email.participant_id == Participant.id,
+            Email.status == 'sent'
+        )
+        .exists()
+    )
+
+    # Add the 'has_email' column to the query
+    base_query = (
+        db.query(
+            Participant,
+            has_email.label('has_email')
+        )
+        .options(joinedload(Participant.suspect))
+        .filter(Participant.campaign_id == campaign_id)
+        .filter(has_email)  # Only include participants who have at least one sent email
+    )
+
+    total = base_query.count()
+    participants = base_query.offset(offset).limit(limit).all()
+
+    # Attach 'has_email' as an attribute to each participant
+    for participant, has_email in participants:
+        setattr(participant, 'has_email', has_email)
+
+    # Return only the participant objects (now with 'has_email' attribute)
+    return [participant for participant, _ in participants], total
+
 def delete_participant(db: Session, participant_id: int):
     participant = db.query(Participant).filter(Participant.id == participant_id).first()
     if not participant:

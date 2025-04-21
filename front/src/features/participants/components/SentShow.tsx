@@ -4,7 +4,7 @@ import { useGetDrafts } from "../../../hooks/useMailing";
 import { useState } from "react";
 import { DraftSend } from "./DraftSend";
 
-export const DraftShow = ({ row, offset, limit }: { row: any, offset: number, limit: number }) => {
+export const SentShow = ({ row, offset, limit }: { row: any, offset: number, limit: number }) => {
     const { data, isFetching, refetch } = useGetDrafts(Number(row.id), {
         enabled: false,
     });
@@ -36,7 +36,7 @@ export const DraftShow = ({ row, offset, limit }: { row: any, offset: number, li
                     }}
                 >
                     <FaRegEye />
-                    <span className="hidden sm:inline">Borrador</span>
+                    <span className="hidden sm:inline">Ver Enviados</span>
                 </button>
             )}
             {modalOpen && data?.length > 0 && (

@@ -28,8 +28,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             {/* Sidebar Header */}
             <div className="flex h-20 w-full flex-none items-center justify-between ps-5 pe-4">
                 {/* Brand */}
-                <a
-                    href="#"
+                <Link
+                    to="/suspects"
                     className="inline-flex items-center gap-2 text-lg font-bold tracking-wide text-slate-800 hover:opacity-75 active:opacity-100"
                 >
                     <div className="flex size-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-white">
@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                     <span>
                         Prospect<span className="text-blue-600">AI</span>
                     </span>
-                </a>
+                </Link>
                 {/* Close Sidebar on Mobile */}
                 <button
                     type="button"

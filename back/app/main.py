@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes.mail import upload as mail_routes
 from .suspects.routes import suspect as suspect_routes
 from .auth.routes import user as user_routes
 from .products.routes import products as products_routes
@@ -18,7 +17,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(mail_routes)
 app.include_router(
     suspect_routes,
     tags=["suspects"],

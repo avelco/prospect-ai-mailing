@@ -3,7 +3,7 @@ import ParticipantTable from "../components/ParticipantTable";
 import { VscCommentDraft } from "react-icons/vsc";
 import { RiMailSendLine } from "react-icons/ri";
 import { FaUsersBetweenLines } from "react-icons/fa6";
-import { SentTable } from "../components/SentTable";
+import SentTable from "../components/SentTable";
 import DraftsTable from "../components/DraftsTable";
 
 const TABS = [

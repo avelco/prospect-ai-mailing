@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { useParticipants } from "../../../hooks/useParticipants";
-import { DeleteParticipant } from "../components/DeleteParticipant";
-import { CreateDraft } from "../components/CreateDraft";
 import { DraftShow } from "./DraftShow";
-import { DraftSend } from "./DraftSend";
 import { DraftDelete } from "./DraftDelete";
 const DraftsTable = () => {
     const [limit] = useState(10);
@@ -110,8 +107,7 @@ const DraftsTable = () => {
                                             </td>
                                             <td className="p-3 text-end font-medium">
                                                 <div className="flex gap-2 justify-end">
-                                                    <DraftShow row={row} />
-                                                    <DraftSend row={row} limit={limit} offset={offset} />
+                                                    <DraftShow row={row} offset={offset} limit={limit} />
                                                     <DraftDelete row={row} limit={limit} offset={offset} />
                                                 </div>
                                             </td>

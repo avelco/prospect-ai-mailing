@@ -6,7 +6,14 @@ import re
 
 from sqlalchemy.orm import Session
 
-from app.mails.queries import delete_draft, get_drafts, store_draft
+from app.lib.mail import send_email
+from app.mails.queries import (
+    delete_draft,
+    get_drafts,
+    get_email_by_id,
+    store_draft,
+    update_email_status,
+)
 from app.models import Suspect
 from app.schemas import SuspectBase
 
@@ -21,38 +28,42 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 # Prompt base (el que definimos antes)
 PROMPT_TEMPLATE = """
-Eres un asistente experto en redacción de correos electrónicos de ventas (cold email) B2B. 
-Tu objetivo es personalizar un correo base utilizando la información proporcionada sobre un prospecto y su empresa, 
+Eres un asistente experto en redacción de correos electrónicos de ventas (cold email) B2B.
+Tu objetivo es personalizar un correo base utilizando la información proporcionada sobre un prospecto y su empresa,
 manejando de forma inteligente los datos faltantes.
 
-Personaliza la siguiente plantilla de correo electrónico utilizando los datos que te proporcionaré para cada prospecto. 
-Asegúrate de que el correo final suene natural y profesional. 
-Reemplaza Placeholders: Sustituye [Nombre de la Empresa] en todos los lugares donde aparece con el valor proporcionado eliminando referencias al tipo de empresa (S.A.S, Ltda, S.A).
+Personaliza la siguiente plantilla de correo electrónico utilizando los datos que te proporcionaré para cada prospecto.
+Asegúrate de que el correo final suene natural y profesional.
+Reemplaza Placeholders: Sustituye [Nombre de la Empresa] en todos los lugares donde aparece con el valor proporcionado eliminando referencias al tipo de empresa como: (S.A.S, Ltda, S.A).
 
-Manejo del Nombre del Contacto: Si de Correo electrónico puedes obtener un nombre de persona, usalo como nombre del contacto : "Hola [Nombre del Contacto]."
+Manejo del Nombre del Contacto: Analiza la parte del correo electrónico antes del '@'.
+- Si esta parte parece ser un nombre de pila claro (ej. 'juan', 'maria') o sigue un formato común como nombre.apellido o nombre_apellido (ej. 'juan.perez', 'maria_gomez'), extrae SOLO el nombre de pila (capitalizando la primera letra) y úsalo en el saludo: "Hola [Nombre de Pila]."
+- Si la parte antes del '@' es solo un apellido (ej. 'avelasco', 'gomez'), iniciales seguidas de apellido (ej. 'fgomez', 'j.perez'), iniciales solas (ej. 'jp'), un término genérico (ej. 'info', 'ventas', 'contacto', 'factura', 'facturacion', 'gerencia'), o cualquier otra cadena que no sea claramente identificable como un nombre de pila, NO intentes adivinar ni usar esa cadena. En estos casos, utiliza el saludo genérico: "Buen día, mi nombre es Katherine Lopez."
 
-Si del Correo electrónico NO se puede obtener el nombre de una persona, utiliza un saludo más genérico pero profesional. Opciones:
-    - "Hola equipo de [Nombre de la Empresa],"
-    - "Hola,"
+Ejemplos de Manejo de Nombre:
+- Si el correo es juan.perez@empresa.com, el saludo sería "Hola Juan."
+- Si el correo es maria@empresa.com, el saludo sería "Hola Maria."
+- Si el correo es fgomez@empresa.com, hlondono@empresa.com, info@empresa.com, gerencia@empresa.com o jp@empresa.com, el saludo será "Buen día, mi nombre es Katherine Lopez."
 
-O adapta el inicio de la primera frase: "Investigando sobre [Nombre de la Empresa], creo que podemos ayudarles a optimizar su flujo de caja." (Eliminando el saludo directo). Elige la opción que suene más natural en el contexto.
+Manejo de Múltiples Correos: El Correo electrónico puede contener varios correos electrónicos separados por ';' como por ejemplo contacto.co@empresa.com;camila.rodriguez@empresa.com en estos casos debes generar un objeto JSON por cada correo electrónico válido encontrado, aplicando las reglas de personalización a cada uno. Ignora partes que no parezcan correos válidos si las hubiera.
 
-El Correo electrónico puede contener varios correos electrónicos separados por ; como por ejemplo factura.electronica.ff.co@geodis.com;sandra.sanchez@geodis.com en estos casos debes generar 2 correos, uno por cada correo
-
-Consistencia: Asegúrate de que el resto del correo (propuesta de valor, llamado a la acción, firma) se mantenga intacto.
-Devuelve la respuesta únicamente en formato JSON, en forma de array con los siguientes campos:
+Consistencia: Asegúrate de que el resto del correo (propuesta de valor, llamado a la acción, firma) se mantenga intacto en cada correo generado.
+Devuelve la respuesta únicamente en formato JSON, en forma de array con los siguientes campos para cada correo generado:
 - subject: Asunto del correo
 - body: Cuerpo del correo (sin el asunto)
-- to: Correo electrónico del prospecto
+- to: Correo electrónico del prospecto individual
 
 Plantilla Base:
 ---
 Asunto: ¿Quién en [Nombre de la Empresa] gestiona el flujo de caja?
 
-Hola [Nombre]. He estado investigando sobre [Nombre de la Empresa] y creo que podemos ayudarte a optimizar tu flujo de caja.
+[Saludo Personalizado o Genérico]
+
+Me pongo en contacto con ustedes porque he estado investigando sobre [Nombre de la Empresa] y quería compartir una solución ideal para empresas como la suya y creo que podemos ayudarle a optimizar su flujo de caja.
 Pude ver que están creciendo, y con el crecimiento suelen surgir desafíos relacionados con la gestión del flujo de caja y la puntualidad en los pagos.
 
 En Cobranti, ayudamos a empresas a optimizar su flujo de caja con herramientas como:
+
 *   Predicción de impagos basada en el historial de pagos de los clientes.
 *   Automatización de notificaciones inteligentes para mejorar la puntualidad en los pagos.
 *   Un panel de control que ofrece visibilidad completa sobre el estado de la cartera.
@@ -66,8 +77,8 @@ Si eres tú quien gestiona este tema, ¿te interesaría agendar una breve llamad
 
 Saludos cordiales,
 
-Katherine Lopez
-Gerente Comercial | Cobranti
+Katherine Lopez<br>
+Gerente Comercial | Cobranti<br>
 www.cobranti.com | +57 321 8631488
 ---
 
@@ -77,9 +88,12 @@ Datos del Prospecto:
 
 Recuerda:
 - Sustituye [Nombre de la Empresa] eliminando S.A.S, Ltda, S.A.
-- Si el nombre del contacto no puede ser identificado, usa un saludo genérico profesional.
-- Devuelve SOLO el JSON solicitado.
+- Aplica la lógica detallada para el saludo basado en el análisis del correo.
+- Genera un objeto JSON por cada correo válido si hay múltiples separados por ';'.
+- Devuelve SOLO el JSON solicitado en formato de array.
+- Reemplaza [Saludo Personalizado o Genérico] en la plantilla con el saludo correcto según las reglas.
 """
+
 
 def generate_cold_email_draft_service(name, email) -> list[dict]:
     # Prepara el prompt con los datos del prospecto
@@ -110,6 +124,7 @@ def generate_cold_email_draft_service(name, email) -> list[dict]:
 
     return result
 
+
 def extract_json(text):
     # Busca bloque entre ```json ... ```
     match = re.search(r"```json\s*([\s\S]+?)\s*```", text)
@@ -122,22 +137,40 @@ def extract_json(text):
     # Si no hay bloque, intenta devolver el texto tal cual
     return text.strip()
 
-def store_draft_service(db: Session, drafts: list[dict], participant_id: int) -> SuspectBase | None:
+
+def store_draft_service(
+    db: Session, drafts: list[dict], participant_id: int
+) -> SuspectBase | None:
     result = store_draft(db, drafts, participant_id)
-    
-    if(result is not None):
+
+    if result is not None:
         return result
-    
+
     return None
-    
+
+
 def delete_draft_service(db: Session, participant_id: int) -> bool:
     result = delete_draft(db, participant_id)
-    
-    if(result):
+
+    if result:
         return True
-    
+
     return False
+
 
 def get_draft_service(db: Session, participant_id: int) -> list[dict] | None:
     drafts = get_drafts(db, participant_id)
     return drafts
+
+
+def send_email_service(db: Session, mail_id: int) -> bool:
+    email = get_email_by_id(db, mail_id)
+    if not email:
+        return False
+    provider_id, status_code = send_email(
+        email.to, email.subject, email.body, "klopez@hello.cobranti.com"
+    )
+    if not provider_id or status_code != 200:
+        return False
+    update_email_status(db, mail_id, "sent", provider_id)
+    return True

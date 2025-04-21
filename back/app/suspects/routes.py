@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status, File, UploadFile, Depends, Query
-from ..services.ai import get_company_info
 from sqlalchemy.orm import Session
 from ..dependencies import get_db
 from ..schemas import SuspectCreate

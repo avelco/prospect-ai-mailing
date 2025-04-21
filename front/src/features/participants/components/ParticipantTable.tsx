@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useParticipants } from "../../../hooks/useParticipants";
+import { useParticipantsWithDrafts } from "../../../hooks/useParticipants";
 import { DeleteParticipant } from "../components/DeleteParticipant";
 import { CreateDraft } from "../components/CreateDraft";
 const ParticipantTable = () => {
     const [limit] = useState(10);
     const [offset, setOffset] = useState(0);
 
-    const { data, isLoading, error } = useParticipants(limit, offset);
+    const { data, isLoading, error } = useParticipantsWithDrafts(limit, offset);
 
     // Pagination logic
     const total = data?.total || 0;

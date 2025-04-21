@@ -24,4 +24,16 @@ def delete_draft(db: Session, participant_id: int):
 def get_drafts(db: Session, participant_id: int) -> list[dict]:
     drafts = db.query(Email).filter(Email.participant_id == participant_id).all()
     return drafts
+
+def get_email_by_id(db: Session, mail_id: int) -> Email | None:
+    return db.query(Email).filter(Email.id == mail_id).first()
+
+def update_email_status(db: Session, mail_id: int, status: str, provider_id: str):
+    email = db.query(Email).filter(Email.id == mail_id).first()
+    if not email:
+        return False
+    email.status = status
+    email.provider_id = provider_id
+    db.commit()
+    return True
     
