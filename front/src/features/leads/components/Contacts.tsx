@@ -1,23 +1,22 @@
 import { FiLoader } from "react-icons/fi";
-import { FaRegEye } from "react-icons/fa";
-import { useGetSentEmails } from "../../../hooks/useMailing";
 import { useState } from "react";
+import { RiContactsBook3Line } from "react-icons/ri";
+import { useContacts } from "../../../hooks/useContacts";
+import { Contact } from "../../../interfaces/ContactInterface";
 
-export const SentShow = ({ row }: { row: any }) => {
-    const { data, isFetching, refetch } = useGetSentEmails(Number(row.id), {
-        enabled: false,
-    });
+export const Contacts = ({ row }: { row: any }) => {
+    const { data, isFetching, refetch } = useContacts(Number(row.id));
 
     const [modalOpen, setModalOpen] = useState(false);
     const handleCloseModal = () => setModalOpen(false);
 
-    const handleGetSentEmails = async () => {
+    const handleGetContacts = async () => {
         try {
             await refetch();
         } finally {
         }
     };
-
+    
     return (
         <>
             {isFetching ? (
@@ -30,15 +29,15 @@ export const SentShow = ({ row }: { row: any }) => {
                     className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm leading-5 font-semibold text-blue-600 hover:border-neutral-300 hover:text-blue-800 active:border-neutral-200"
                     title="Ver borrador"
                     onClick={async () => {
-                        await handleGetSentEmails();
+                        await handleGetContacts();
                         setModalOpen(true);
                     }}
                 >
-                    <FaRegEye />
-                    <span className="hidden sm:inline">Ver Enviados</span>
+                    <RiContactsBook3Line className="text-blue-600" size={19} />
+                    <span className="hidden sm:inline">Ver Contactos</span>
                 </button>
             )}
-            {modalOpen && data?.length > 0 && (
+            {modalOpen && data && (
                 <div
                     className="fixed inset-0 z-50 flex items-start justify-end backdrop-blur-sm bg-black/40 transition-all duration-300"
                     onClick={(e) => {
@@ -51,7 +50,7 @@ export const SentShow = ({ row }: { row: any }) => {
                     >
                         <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b flex items-center justify-between">
                             <h2 className="text-lg font-bold text-gray-800">
-                                Correo(s) enviado(s)
+                                Contactos
                             </h2>
                             <button
                                 className="rounded-full p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
@@ -65,9 +64,9 @@ export const SentShow = ({ row }: { row: any }) => {
                         </div>
 
                         <div className="p-6">
-                            {data.map((draft: any, idx: number) => (
+                            {data.map((contact: Contact, idx: number) => (
                                 <div
-                                    key={draft.id || idx}
+                                    key={contact.id || idx}
                                     className="mb-6 rounded-lg bg-white p-4 border border-gray-200 shadow-sm text-left"
                                 >
                                     <div className="space-y-4">
@@ -75,46 +74,15 @@ export const SentShow = ({ row }: { row: any }) => {
                                         <div className="grid grid-cols-2 gap-3 pb-3 border-b border-gray-100">
                                             <div>
                                                 <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Enviado el</div>
-                                                <div className="font-medium text-gray-800 truncate" title={new Date(draft.created_at).toLocaleString()}>{new Date(draft.created_at).toLocaleString()}</div>
+                                                <div className="font-medium text-gray-800 truncate" title={new Date(contact.created_at).toLocaleString()}>{new Date(contact.created_at).toLocaleString()}</div>
                                             </div>
                                             <div>
                                                 <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Para</div>
-                                                <div className="font-medium text-gray-800 truncate" title={draft.to}>{draft.to}</div>
+                                                <div className="font-medium text-gray-800 truncate" title={contact.email}>{contact.email}</div>
                                             </div>
                                             <div className="col-span-2">
                                                 <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Asunto</div>
-                                                <div className="font-medium bg-gray-50 rounded-lg p-4 border border-gray-100 shadow-inner">{draft.subject}</div>
-                                            </div>
-                                        </div>
-
-                                        {/* Email content in a card with email styling */}
-                                        <div className="mt-4">
-                                            <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Contenido</div>
-                                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 shadow-inner">
-                                                <div className="prose prose-sm max-w-none">
-                                                    {draft.body.split('\n').map((paragraph: string, i: number) => {
-                                                        // Handle bullet points
-                                                        if (paragraph.trim().startsWith('*')) {
-                                                            return (
-                                                                <ul key={i} className="list-disc pl-5 my-2">
-                                                                    <li className="text-gray-700">{paragraph.trim().substring(1).trim()}</li>
-                                                                </ul>
-                                                            );
-                                                        }
-
-                                                        // Handle empty lines as spacing
-                                                        if (paragraph.trim() === '') {
-                                                            return <div key={i} className="h-2"></div>;
-                                                        }
-
-                                                        // Regular paragraphs
-                                                        return (
-                                                            <p key={i} className="text-gray-700 mb-2">
-                                                                {paragraph}
-                                                            </p>
-                                                        );
-                                                    })}
-                                                </div>
+                                                <div className="font-medium bg-gray-50 rounded-lg p-4 border border-gray-100 shadow-inner">{contact.phone}</div>
                                             </div>
                                         </div>
                                     </div>

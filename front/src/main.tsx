@@ -15,6 +15,8 @@ import SettingsPage from './features/settings/pages/SettingsPage';
 import DealsPage from './features/deals/pages/DealsPage';
 import ParticipantPage from './features/participants/pages/ParticipantPage';
 import { ToastContainer } from 'react-toastify';
+import { LeadsPage } from './features/leads/pages/LeadPage';
+import { SuspectsShowPage } from './features/suspects/pages/SuspectsShowPage';
 const queryClient = new QueryClient({
 	defaultOptions: {
 	  queries: {
@@ -37,6 +39,8 @@ const router = createBrowserRouter([
 					{ path: "/settings", Component: SettingsPage },
 					{ path: "/deals", Component: DealsPage },
 					{ path: "/participants", Component: ParticipantPage },
+					{ path: "/leads", Component: LeadsPage },
+					{ path: "/suspects/:id", Component: SuspectsShowPage },
 				],
 			}
 		]

@@ -8,6 +8,7 @@ from io import StringIO
 import chardet
 from fastapi import HTTPException, status, UploadFile
 from .queries import (
+    get_suspect_by_id,
     get_suspects_query,
     update_suspect_query,
     soft_delete_suspect_query,
@@ -155,3 +156,8 @@ async def process_csv_upload_service(file: UploadFile, db: Session):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
         raise HTTPException(status_code=500, detail=f"Ocurrió un error: {str(e)}")
     return {"message": "Archivo CSV procesado exitosamente"}
+
+async def get_suspect_by_id_service(db: Session, suspect_id: int):
+    suspect = await get_suspect_by_id(db, suspect_id)
+    return suspect
+    

@@ -5,7 +5,8 @@ from app.dependencies import get_db
 from app.mails.services import (
     delete_draft_service, 
     generate_cold_email_draft_service, 
-    get_draft_service, 
+    get_draft_service,
+    get_sent_service, 
     store_draft_service, 
     send_email_service
 )
@@ -32,15 +33,21 @@ async def delete_draft(participant_id: int, db: Session = Depends(get_db)):
     delete_draft_service(db, participant_id)
     return {"message": "Draft deleted successfully"}
 
-@mails.get("/{participant_id}")
+@mails.post("/send/{mail_id}")
+async def send_email(mail_id: int, db: Session = Depends(get_db)):
+    if not mail_id:
+        raise HTTPException(status_code=400, detail="Mail ID is required")
+    return send_email_service(db, mail_id)
+
+@mails.get("/{participant_id}/drafts")
 async def get_drafts(participant_id: int, db: Session = Depends(get_db)):
     if not participant_id:
         raise HTTPException(status_code=400, detail="Participant ID is required")
     drafts = get_draft_service(db, participant_id)
     return drafts
 
-@mails.post("/send/{mail_id}")
-async def send_email(mail_id: int, db: Session = Depends(get_db)):
-    if not mail_id:
-        raise HTTPException(status_code=400, detail="Mail ID is required")
-    return send_email_service(db, mail_id)
+@mails.get("/{participant_id}/sent")
+async def get_sent_mails(participant_id: int, db: Session = Depends(get_db)):
+    if not participant_id:
+        raise HTTPException(status_code=400, detail="Participant ID is required")
+    return get_sent_service(db, participant_id)

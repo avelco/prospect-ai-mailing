@@ -46,7 +46,22 @@ export const useGetDrafts = (
 	return useQuery({
 		queryKey: ["drafts", participant_id],
 		queryFn: async () => {
-			const response = await api.get(`/mails/${participant_id}`);
+			const response = await api.get(`/mails/${participant_id}/drafts`);
+			return response.data;
+		},
+		enabled: options.enabled !== undefined ? options.enabled : true,
+		...options,
+	});
+};
+
+export const useGetSentEmails = (
+	participant_id: number,
+	options: { enabled?: boolean } = {}
+) => {
+	return useQuery({
+		queryKey: ["sentEmails", participant_id],
+		queryFn: async () => {
+			const response = await api.get(`/mails/${participant_id}/sent`);
 			return response.data;
 		},
 		enabled: options.enabled !== undefined ? options.enabled : true,

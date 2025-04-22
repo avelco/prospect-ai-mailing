@@ -11,10 +11,10 @@ from app.mails.queries import (
     delete_draft,
     get_drafts,
     get_email_by_id,
+    get_sent_mails,
     store_draft,
     update_email_status,
 )
-from app.models import Suspect
 from app.schemas import SuspectBase
 
 
@@ -161,6 +161,10 @@ def delete_draft_service(db: Session, participant_id: int) -> bool:
 def get_draft_service(db: Session, participant_id: int) -> list[dict] | None:
     drafts = get_drafts(db, participant_id)
     return drafts
+
+def get_sent_service(db: Session, participant_id: int) -> list[dict] | None:
+    sent_mails = get_sent_mails(db, participant_id)
+    return sent_mails
 
 
 def send_email_service(db: Session, mail_id: int) -> bool:

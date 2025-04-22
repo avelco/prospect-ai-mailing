@@ -188,3 +188,25 @@ class EmailRead(EmailBase):
     class Config:
         from_attributes = True
         
+        
+class ContactBase(BaseModel):
+    suspect_id: int
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class ContactCreate(ContactBase):
+    pass
+
+class ContactUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class ContactRead(ContactBase):
+    id: int
+    created_at: Optional[datetime.datetime] 
+    updated_at: Optional[datetime.datetime]        
+    
+    class Config:
+        from_attributes = True     

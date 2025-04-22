@@ -4,10 +4,12 @@ from sqlalchemy.orm import Session
 
 from app.participants.services import (
     delete_participant_service,
+    get_leads_service,
     get_participants_service,
     get_participants_with_drafts_service,
     store_participant_service,
     get_participants_with_mail_service,
+    transform_participant_to_lead_service,
 )
 from app.schemas import ParticipantCreate, PaginatedParticipants
 from ..dependencies import get_db
@@ -92,3 +94,28 @@ async def get_participants_with_drafts(
 @participants.delete("/{participant_id}")
 async def delete_participant(participant_id: int, db: Session = Depends(get_db)):
     return delete_participant_service(db, participant_id)
+
+@participants.post("/{participant_id}/to-lead")
+async def transform_participant_to_lead(participant_id: int, db: Session = Depends(get_db)):
+    return transform_participant_to_lead_service(db, participant_id)
+    
+@participants.get("/{campaign_id}/leads")
+async def get_leads(
+    campaign_id: int,
+    db: Session = Depends(get_db),
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    leads, total = get_leads_service(
+        db, limit=limit, offset=offset, campaign_id=campaign_id
+    )
+    pages = math.ceil(total / limit) if limit else 1
+    current_page = (offset // limit) + 1 if limit else 1
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "pages": pages,
+        "current_page": current_page,
+        "leads": leads,
+    }

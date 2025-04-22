@@ -6,6 +6,7 @@ from .products.routes import products as products_routes
 from .campaigns.routes import campaigns as campaigns_routes
 from .participants.routes import participants as participants_routes
 from .mails.routes import mails as mails_routes
+from .contacts.routes import contacts as contacts_routes
 
 app = FastAPI()
 
@@ -26,6 +27,7 @@ app.include_router(products_routes, prefix="/products", tags=["products"])
 app.include_router(campaigns_routes, prefix="/campaigns", tags=["campaigns"])
 app.include_router(participants_routes, prefix="/participants", tags=["participants"])
 app.include_router(mails_routes, prefix="/mails", tags=["mails"])
+app.include_router(contacts_routes, prefix="/contacts", tags=["contacts"])
 
 @app.get("/")
 def read_root():

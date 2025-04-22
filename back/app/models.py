@@ -48,7 +48,7 @@ class Suspect(Base):
 
     details = relationship("SuspectDetail", back_populates="suspect", uselist=False)
     participants = relationship("Participant", back_populates="suspect")
-
+    contacts = relationship("Contact", back_populates="suspect")
 
 class SuspectDetail(Base):
     __tablename__ = "suspect_details"
@@ -153,3 +153,17 @@ class Task(Base):
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
 
     participant = relationship("Participant", back_populates="tasks")
+
+
+class Contact(Base):
+    __tablename__ = "contacts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=False)
+    name = Column(String)
+    phone = Column(String)
+    email = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc), onupdate=datetime.datetime.now(datetime.timezone.utc))
+
+    suspect = relationship("Suspect", back_populates="contacts")

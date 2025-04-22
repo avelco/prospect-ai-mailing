@@ -3,7 +3,7 @@ import { FaRegEye } from "react-icons/fa";
 import { useGetSentEmails } from "../../../hooks/useMailing";
 import { useState } from "react";
 
-export const SentShow = ({ row }: { row: any }) => {
+export const AddContact = ({ row }: { row: any }) => {
     const { data, isFetching, refetch } = useGetSentEmails(Number(row.id), {
         enabled: false,
     });

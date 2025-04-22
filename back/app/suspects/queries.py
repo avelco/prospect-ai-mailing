@@ -1,3 +1,4 @@
+from requests import Session
 from ..models import Suspect, Participant
 from sqlalchemy import or_, exists
 from typing import Optional, List
@@ -96,3 +97,9 @@ async def bulk_create_suspects_from_rows(db, suspect_rows, SuspectModel, Suspect
         db.add(suspect)
     db.commit()
     return True
+
+async def get_suspect_by_id(db: Session, suspect_id: int) -> Optional[Suspect]:
+    return db.query(Suspect).filter(
+        Suspect.id == suspect_id,
+        or_(Suspect.deleted == False, Suspect.deleted.is_(None))
+    ).first()

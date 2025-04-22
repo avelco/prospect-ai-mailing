@@ -1,8 +1,9 @@
 // src/services/suspects.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { SuspectResult } from "../interfaces/SuspectInterface";
+import { Suspect, SuspectResult } from "../interfaces/SuspectInterface";
 import api from "../services/axios";
 import { useCampaignStore } from "../stores/campaignStore";
+import { useParams } from "react-router";
 
 const fetchSuspects = async (
   limit: number,
@@ -36,4 +37,21 @@ export const useSuspectDelete = ( limit: number, offset: number) => {
       queryClient.invalidateQueries({ queryKey: ["suspects", limit, offset, campaign] });
     },
   });
+};
+
+
+const fetchSuspect = async (id: number): Promise<Suspect> => {
+  	const response = await api.get(`/suspects/${id}/company-info`, {
+    headers: { accept: "application/json" },
+  });
+  return response.data;
+};
+
+export const useSuspect = () => {
+	const id = useParams().id;
+	return useQuery({
+		queryKey: ["suspect", id],
+		queryFn: () => fetchSuspect(Number(id)),
+		enabled: !!id
+	});
 };

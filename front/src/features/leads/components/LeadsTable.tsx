@@ -1,0 +1,158 @@
+import { useState } from "react";
+import { useLeads } from "../../../hooks/useLeads";
+import { ConvertLeadToProspect } from "./ConvertLeadToProspect";
+import { Contacts } from "./Contacts";
+import { Link } from "react-router";
+const LeadsTable = () => {
+    const [limit] = useState(10);
+    const [offset, setOffset] = useState(0);
+
+    const { data, isLoading, error } = useLeads(limit, offset);
+
+    // Pagination logic
+    const total = data?.total || 0;
+    const pages = Math.ceil(total / limit);
+    const currentPage = Math.floor(offset / limit) + 1;
+
+    const goToPage = (page: number) => {
+        setOffset((page - 1) * limit);
+    };
+
+    const handlePrev = () => {
+        if (currentPage > 1) goToPage(currentPage - 1);
+    };
+
+    const handleNext = () => {
+        if (currentPage < pages) goToPage(currentPage + 1);
+    };
+
+    console.log(data);
+
+    return (
+        <div className="flex flex-col rounded-lg border border-neutral-200 bg-white shadow p-0 sm:col-span-2 lg:col-span-4">
+            <div className="flex flex-col items-center justify-between gap-4 border-b border-neutral-100 p-5 text-center sm:flex-row sm:text-start">
+                <div>
+                    <h2 className="mb-0.5 font-semibold text-lg">Leads</h2>
+                    <h3 className="text-sm font-medium text-neutral-600">
+                        Leads, empresas que han mostrado interés en el producto
+                    </h3>
+                    <div className="text-sm font-medium text-neutral-600">
+                    <strong>Lead:</strong> Es cualquier contacto que ha mostrado algún interés o ha interactuado con tu empresa, pero aún no ha sido calificado.
+                    </div>
+                    <div className="text-sm font-medium text-neutral-600">
+                    <strong>Prospecto:</strong> Es un lead que ya ha sido calificado y cumple con los requisitos clave para ser considerado un cliente potencial real. 
+                    </div>
+                </div>
+            </div>
+            <div className="p-5">
+                {/* Loading and Error States */}
+                {isLoading && (
+                    <div className="text-center py-12 text-blue-500 text-lg font-semibold animate-pulse">
+                        Cargando...
+                    </div>
+                )}
+                {error && (
+                    <div className="text-center py-12 text-red-500 text-lg font-semibold">
+                        Error al cargar los datos: {(error as Error).message}
+                    </div>
+                )}
+                {!isLoading && !error && (
+                    <>
+                        <div className="min-w-full overflow-x-auto rounded-sm">
+                            <table className="min-w-full align-middle text-sm">
+                                <thead>
+                                    <tr className="border-b-2 border-neutral-100">
+                                        <th className="min-w-[180px] px-3 py-2 text-start text-xs font-semibold tracking-wider text-neutral-700 uppercase">
+                                            Email
+                                        </th>
+                                        <th className="min-w-[140px] px-3 py-2 text-start text-xs font-semibold tracking-wider text-neutral-700 uppercase">
+                                            Nombre
+                                        </th>
+                                        <th className="min-w-[120px] px-3 py-2 text-start text-xs font-semibold tracking-wider text-neutral-700 uppercase">
+                                            Teléfono
+                                        </th>
+                                        <th className="min-w-[120px] px-3 py-2 text-start text-xs font-semibold tracking-wider text-neutral-700 uppercase">
+                                            Ciudad
+                                        </th>
+                                        <th className="min-w-[100px] p-3 py-2 text-end text-xs font-semibold tracking-wider text-neutral-700 uppercase"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data?.leads?.length === 0 && (
+                                        <tr>
+                                            <td colSpan={11} className="text-center py-8 text-gray-400">
+                                                No hay leads para mostrar.
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {data?.leads?.map((row) => (
+                                        <tr
+                                            key={row.identification}
+                                            className={`border-b border-neutral-100 hover:bg-neutral-50 transition-colors duration-200
+                                            `}
+                                        >
+                                            <td className="p-3 font-medium text-neutral-600 max-w-[180px] truncate whitespace-nowrap" title={row.email}>
+                                                <Link to={`/suspects/${row.id}`}>
+                                                {row.email}
+                                                </Link>
+                                            </td>
+                                            <td className="p-3 text-neutral-600">{row.name || "-"}</td>
+                                            <td className="p-3 text-neutral-600">{row.phone || "-"}</td>
+                                            <td className="p-3 text-neutral-600">{row.city || "-"}</td>
+                                            <td className="p-3 text-end font-medium">
+                                                <div className="flex gap-2 justify-end">
+                                                    <Contacts row={row} />
+                                                    <ConvertLeadToProspect participant_id={row.id} offset={offset} limit={limit} />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {/* Pagination Controls */}
+                        {data?.leads.length != 0 && (                        
+                        <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+                            <div className="text-neutral-600">
+                                Página <span className="font-semibold">{currentPage}</span> de{" "}
+                                <span className="font-semibold">{pages}</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handlePrev}
+                                    disabled={currentPage === 1}
+                                    className="px-4 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-700 font-semibold hover:border-neutral-300 hover:text-neutral-950 disabled:opacity-50 transition"
+                                >
+                                    Anterior
+                                </button>
+                                {Array.from({ length: pages }, (_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => goToPage(i + 1)}
+                                        className={`px-4 py-2 rounded-lg font-semibold transition border
+                                            ${currentPage === i + 1
+                                                ? "bg-blue-600 text-white border-blue-600 shadow"
+                                                : "bg-white text-neutral-700 border-neutral-200 hover:border-blue-300 hover:text-blue-700"
+                                            }`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={handleNext}
+                                    disabled={currentPage === pages || pages === 0}
+                                    className="px-4 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-700 font-semibold hover:border-neutral-300 hover:text-neutral-950 disabled:opacity-50 transition"
+                                >
+                                    Siguiente
+                                </button>
+                            </div>
+                        </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default LeadsTable;

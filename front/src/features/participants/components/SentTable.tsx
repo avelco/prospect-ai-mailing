@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useParticipantsWithMail } from "../../../hooks/useParticipants";
-import { DraftShow } from "./DraftShow";
-import { DraftDelete } from "./DraftDelete";
 import { SentShow } from "./SentShow";
+import { SentConvertIntoLead } from "./SentConvertIntoLead";
 const SentTable = () => {
     const [limit] = useState(10);
     const [offset, setOffset] = useState(0);
@@ -108,7 +107,8 @@ const SentTable = () => {
                                             </td>
                                             <td className="p-3 text-end font-medium">
                                                 <div className="flex gap-2 justify-end">
-                                                    <SentShow row={row} offset={offset} limit={limit} />
+                                                    <SentShow row={row} />
+                                                    <SentConvertIntoLead participant_id={row.id} offset={offset} limit={limit} />
                                                 </div>
                                             </td>
                                         </tr>

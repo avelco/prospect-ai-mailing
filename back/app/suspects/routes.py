@@ -56,14 +56,7 @@ async def delete_suspect(suspect_id: int, db: Session = Depends(get_db)):
                 detail="suspect not found"
             )
         return deleted_suspect
-    
+
 @suspect.get("/suspects/{suspect_id}/company-info")
-async def get_suspect_company_info(suspect_id: str, db: Session = Depends(get_db)):
-    try:
-        suspect_data = await get_suspect_by_id_service(suspect_id)
-        company_info = await get_company_info(suspect_data)
-        score = await score_company_info(company_info)
-        return {"company_info": company_info, "score": score}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-        
+async def get_suspect(suspect_id: int, db: Session = Depends(get_db)):
+    return await get_suspect_by_id_service(db, suspect_id)
