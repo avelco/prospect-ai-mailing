@@ -1,20 +1,19 @@
 # Prospect AI Mailing
 
-A modern AI-powered mailing system built with SvelteKit and Python.
+A modern AI-powered mailing system built with React with Typescript and Python.
 
 ## Project Structure
 
 The project is divided into two main parts:
 
-- `front/`: Frontend application built with SvelteKit and TailwindCSS
+- `front/`: Frontend application built with React with Typescript and TailwindCSS
 - `back/`: Backend API built with Python
 
 ## Tech Stack
 
 ### Frontend
-- SvelteKit 2.x
+- React 19.x
 - TailwindCSS 4.x
-- DaisyUI
 - TypeScript
 - Vite
 
