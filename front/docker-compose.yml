@@ -1,9 +1,22 @@
-version: '3.8'
 services:
   frontend:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    container_name: prospect-frontend      
     ports:
       - "9041:9041"
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.crm-cobranti.rule=Host(`crm.cobranti.com`) || Host(`www.crm.cobranti.com`)"
+        - "traefik.http.routers.crm-cobranti.entrypoints=websecure"
+        - "traefik.http.routers.crm-cobranti.tls=true"
+        - "traefik.http.routers.crm-cobranti.tls.certresolver=myresolver"
+        - "traefik.http.routers.crm-cobranti.middlewares=redirect-to-https@docker,redirect-to-non-www@docker"
+        - "traefik.http.services.crm-cobranti.loadbalancer.server.port=9041"      
     restart: unless-stopped
+    networks:
+        - service_network
+networks:
+    service_network:
+        external: true

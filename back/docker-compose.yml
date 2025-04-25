@@ -1,12 +1,26 @@
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: prospect-backend
-    ports:
-      - "9040:9040"
-    env_file:
-      - .env
-    volumes:
-      - .:/app
+    backend:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+        container_name: prospect-backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.crm-cobranti-api.rule=Host(`api.crm.cobranti.com`) || Host(`www.api.crm.cobranti.com`)"
+            - "traefik.http.routers.crm-cobranti-api.entrypoints=websecure"
+            - "traefik.http.routers.crm-cobranti-api.tls=true"
+            - "traefik.http.routers.crm-cobranti-api.tls.certresolver=myresolver"
+            - "traefik.http.routers.crm-cobranti-api.middlewares=redirect-to-https@docker,redirect-to-non-www@docker"
+            - "traefik.http.services.crm-cobranti-api.loadbalancer.server.port=9040"
+        ports:
+            - "9040:9040"
+        env_file:
+            - .env
+        volumes:
+            - .:/app
+        networks:
+            - service_network
+
+networks:
+    service_network:
+        external: true
