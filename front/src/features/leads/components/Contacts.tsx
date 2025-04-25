@@ -27,7 +27,7 @@ export const Contacts = ({ row }: { row: any }) => {
             ) : (
                 <button
                     className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm leading-5 font-semibold text-blue-600 hover:border-neutral-300 hover:text-blue-800 active:border-neutral-200"
-                    title="Ver borrador"
+                    title="Ver Contactos"
                     onClick={async () => {
                         await handleGetContacts();
                         setModalOpen(true);
@@ -62,7 +62,7 @@ export const Contacts = ({ row }: { row: any }) => {
                                 </svg>
                             </button>
                         </div>
-
+                        
                         <div className="p-6">
                             {data.map((contact: Contact, idx: number) => (
                                 <div

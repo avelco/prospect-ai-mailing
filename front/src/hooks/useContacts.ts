@@ -13,10 +13,11 @@ export const useContacts = (suspect_id: number) => {
   return useQuery({
     queryKey: ["contacts", suspect_id],
     queryFn: () => fetchContacts(suspect_id),
+    enabled: !!suspect_id,
   });
 };
 
-export const useConvertIntoLead = (participant_id: number) => {
+export const useContactCreate = (suspect_id: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -25,7 +26,7 @@ export const useConvertIntoLead = (participant_id: number) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["contacts", participant_id],
+        queryKey: ["contacts", suspect_id],
       });
     },
   });

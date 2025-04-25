@@ -133,11 +133,11 @@ class PaginatedParticipants(BaseModel):
 # --- Interaction Schemas ---
 
 class InteractionBase(BaseModel):
-    participant_id: int
+    participant_id: Optional[int]
     description: Optional[str]
 
-class InteractionCreate(InteractionBase):
-    pass
+class InteractionCreate(BaseModel):
+    description: Optional[str]
 
 class InteractionRead(InteractionBase):
     id: int

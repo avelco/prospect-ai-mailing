@@ -3,7 +3,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.participants.services import (
+    add_interaction_service,
     delete_participant_service,
+    get_interactions_service,
     get_leads_service,
     get_participants_service,
     get_participants_with_drafts_service,
@@ -11,7 +13,7 @@ from app.participants.services import (
     get_participants_with_mail_service,
     transform_participant_to_lead_service,
 )
-from app.schemas import ParticipantCreate, PaginatedParticipants
+from app.schemas import InteractionCreate, ParticipantCreate, PaginatedParticipants
 from ..dependencies import get_db
 import math
 
@@ -119,3 +121,12 @@ async def get_leads(
         "current_page": current_page,
         "leads": leads,
     }
+    
+
+@participants.post("/{suspect_id}/interactions/{campaign_id}")
+async def add_interaction(suspect_id: int, interaction: InteractionCreate, campaign_id: int,  db: Session = Depends(get_db)):
+    return add_interaction_service(db, suspect_id, campaign_id, interaction)
+
+@participants.get("/{suspect_id}/interactions/{campaign_id}")
+async def get_interactions(suspect_id: int, campaign_id: int, db: Session = Depends(get_db)):
+    return get_interactions_service(db, suspect_id, campaign_id)

@@ -1,7 +1,7 @@
 // src/components/CopyToClipboard.tsx
 
 import React, { useState, useEffect, useCallback } from "react";
-import { MdOutlineContentCopy, MdCheck } from "react-icons/md"; // Using Material Design icons
+import { MdOutlineContentCopy, MdCheck } from "react-icons/md";
 
 interface CopyToClipboardProps {
   /**
@@ -64,56 +64,73 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = ({
     };
   }, [isCopied, successDuration]);
 
-  const handleCopyClick = useCallback(async () => {
-    if (!navigator.clipboard) {
-      // Clipboard API not available (e.g., insecure context)
-      console.error("Clipboard API not available.");
-      // Optionally: Add user feedback here for unsupported browsers/contexts
-      return;
-    }
+  const handleCopyClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent event bubbling
 
-    try {
-      await navigator.clipboard.writeText(textToCopy);
-      setIsCopied(true);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-      // Optionally: Add user feedback here for copy failure
-      setIsCopied(false); // Ensure state is reset on failure
-    }
-  }, [textToCopy]);
+      if (!navigator.clipboard) {
+        // Clipboard API not available (e.g., insecure context)
+        console.error("Clipboard API not available.");
+        // Optionally: Add user feedback here for unsupported browsers/contexts
+        return;
+      }
 
-  // Base button classes - adjust as needed for your design system
-  const baseClasses =
-    "inline-flex items-center justify-center gap-x-1.5 px-2.5 py-1.5 text-sm font-medium border rounded transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2";
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        setIsCopied(true);
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+        // Optionally: Add user feedback here for copy failure
+        setIsCopied(false); // Ensure state is reset on failure
+      }
+    },
+    [textToCopy]
+  );
 
-  // State-specific classes
-  const idleClasses =
-    "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-indigo-500";
-  const successClasses =
-    "border-green-300 bg-green-50 text-green-700 focus:ring-green-500";
+  // For icon-only buttons (which is our primary use case)
+  if (!buttonText && !successText) {
+    return (
+      <button
+        type="button"
+        onClick={handleCopyClick}
+        title={tooltip}
+        aria-label={isCopied ? "Contenido copiado" : "Copiar al portapapeles"}
+        className={`p-1 rounded-full transition-colors duration-150 focus:outline-none ${
+          isCopied
+            ? "text-green-600 bg-green-50 hover:bg-green-100"
+            : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+        } ${className}`}
+      >
+        {isCopied ? (
+          <MdCheck className="h-4 w-4" aria-hidden="true" />
+        ) : (
+          <MdOutlineContentCopy className="h-4 w-4" aria-hidden="true" />
+        )}
+      </button>
+    );
+  }
 
-  // Combine classes
-  const combinedClassName = `${baseClasses} ${
-    isCopied ? successClasses : idleClasses
-  } ${className}`;
-
+  // For buttons with text (secondary use case)
   return (
     <button
       type="button"
-      className={combinedClassName}
       onClick={handleCopyClick}
-      title={tooltip} // Add tooltip for hover hint
-      aria-label={isCopied ? "Content copied" : "Copy content to clipboard"}
-      aria-live="polite" // Announce changes politely
+      title={tooltip}
+      aria-label={isCopied ? "Contenido copiado" : "Copiar al portapapeles"}
+      className={`inline-flex items-center gap-x-1.5 px-2 py-1 rounded text-xs font-medium transition-colors duration-150 focus:outline-none ${
+        isCopied
+          ? "text-green-700 bg-green-50 hover:bg-green-100"
+          : "text-gray-600 bg-gray-50 hover:bg-gray-100"
+      } ${className}`}
     >
       {isCopied ? (
         <>
-          <MdCheck className="h-4 w-4" aria-hidden="true" />
+          <MdCheck className="h-3.5 w-3.5" aria-hidden="true" />
           {successText && <span>{successText}</span>}
         </>
       ) : (
         <>
-          <MdOutlineContentCopy className="h-4 w-4" aria-hidden="true" />
+          <MdOutlineContentCopy className="h-3.5 w-3.5" aria-hidden="true" />
           {buttonText && <span>{buttonText}</span>}
         </>
       )}

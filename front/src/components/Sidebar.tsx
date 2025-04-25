@@ -175,7 +175,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                             navigate("/login");
                         }}
                     >
-                        Sign Out
+                        Salir
                     </span>
                 </Link>
             </div>

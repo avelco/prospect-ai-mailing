@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models import Participant, Suspect, Campaign, Email
-from app.schemas import ParticipantCreate
+from app.models import Interaction, Participant, Suspect, Campaign, Email
+from app.schemas import InteractionCreate, ParticipantCreate
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import exists, and_
 
@@ -142,3 +142,28 @@ def get_leads(db: Session, campaign_id: int, limit: int = 10, offset: int = 0):
     )
     total = len(participants)
     return participants, total
+
+
+def add_interaction(db: Session, participant_id: int, interaction: InteractionCreate):
+    db.add(Interaction(participant_id=participant_id, **interaction.model_dump()))
+    db.commit()
+    return (
+        db.query(Interaction)
+        .filter(Interaction.participant_id == participant_id)
+        .first()
+    )
+
+
+def get_interactions(db: Session, participant_id: int):
+    return (
+        db.query(Interaction).filter(Interaction.participant_id == participant_id).all()
+    )
+
+
+def get_participant_id(db: Session, suspect_id: int, campaign_id: int):
+    return (
+        db.query(Participant.id)
+        .filter(Participant.campaign_id == campaign_id)
+        .filter(Participant.suspect_id == suspect_id)
+        .scalar()
+    )
