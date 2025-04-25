@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	createBrowserRouter,
+	Navigate,
 	RouterProvider,
 } from "react-router";
 import './index.css'
@@ -28,9 +29,16 @@ const queryClient = new QueryClient({
 const router = createBrowserRouter([
 
 	{
-		path: "/",
-		children: [
-			{ path: "/login", Component: LoginPage },
+        path: "/",
+        children: [
+            {
+                index: true,
+                element: <Navigate to="/login" replace />,
+            },
+            {
+                path: "login",
+                Component: LoginPage
+            },
 			{
 				Component: PrivateLayout,
 				children: [
