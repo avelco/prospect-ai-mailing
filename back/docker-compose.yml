@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: prospect-backend
+    ports:
+      - "9040:9040"
+    env_file:
+      - .env
+    volumes:
+      - .:/app

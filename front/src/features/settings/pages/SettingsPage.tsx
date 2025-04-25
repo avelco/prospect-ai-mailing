@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import { FaUpload, FaUsers } from "react-icons/fa";
 import { AiFillProduct } from "react-icons/ai";
 import { MdOutlineCampaign } from "react-icons/md";
-import Products from "../components/ProductForm";
-import Campaigns from "../components/CampaignForm";
 import ProductForm from "../components/ProductForm";
 import { ProductTable } from "../components/ProductTable";
 import CampaignForm from "../components/CampaignForm";

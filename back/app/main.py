@@ -8,7 +8,19 @@ from .participants.routes import participants as participants_routes
 from .mails.routes import mails as mails_routes
 from .contacts.routes import contacts as contacts_routes
 
-app = FastAPI()
+app = FastAPI(
+    title="ProspectAI",
+    description="API para gestionar prospectos y campañas de marketing.",
+    version="1.0.0",
+    contact={
+        "name": "Cobranti",
+        "url": "https://cobranti.com",
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+)
 
 # Configure CORS
 app.add_middleware(

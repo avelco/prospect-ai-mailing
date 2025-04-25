@@ -1,14 +1,10 @@
 // src/components/SuspectDetail.jsx
 
-import { useState } from "react";
 import {
 	MdOutlineEmail,
 	MdOutlinePhone,
 	MdOutlineLocationOn,
-	MdOutlineBusiness,
 	MdOutlineEdit,
-	MdOutlineVerified,
-	MdOutlineWarningAmber,
 } from "react-icons/md";
 import { useSuspect } from "../../../hooks/useSuspect";
 import { LoaderSpinner } from "../../../components/LoaderSpinner";
@@ -16,8 +12,6 @@ import { CopyToClipboard } from "../../../components/CopyToClipboard";
 
 export const SuspectDetail = () => {
 	const { data, isLoading } = useSuspect();
-	const [showMore, setShowMore] = useState(false);
-
 	// Improved Loading State
 	if (isLoading) {
 		return (

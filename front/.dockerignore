@@ -1,0 +1,28 @@
+# Git stuff
+.git
+.gitignore
+
+# Node modules (should be installed inside the container)
+node_modules
+
+# Local environment variables
+.env
+.env.*
+!.env.example
+
+# Build output (if generated locally)
+dist
+build
+.next
+.output
+
+# IDE / OS specific
+.vscode
+.idea
+*.DS_Store
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
