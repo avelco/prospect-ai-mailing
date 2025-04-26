@@ -14,7 +14,9 @@ services:
         - "traefik.http.routers.crm-cobranti.tls.certresolver=myresolver"
         - "traefik.http.routers.crm-cobranti.middlewares=redirect-to-https@docker,redirect-to-non-www@docker"
         - "traefik.http.services.crm-cobranti.loadbalancer.server.port=9041"      
-    restart: unless-stopped
+    restart: always
+    env_file:
+        - .env    
     networks:
         - service_network
 networks:
