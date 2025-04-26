@@ -41,9 +41,9 @@ Manejo del Nombre del Contacto: Analiza la parte del correo electrónico antes d
 - Si la parte antes del '@' es solo un apellido (ej. 'avelasco', 'gomez'), iniciales seguidas de apellido (ej. 'fgomez', 'j.perez'), iniciales solas (ej. 'jp'), un término genérico (ej. 'info', 'ventas', 'contacto', 'factura', 'facturacion', 'gerencia'), o cualquier otra cadena que no sea claramente identificable como un nombre de pila, NO intentes adivinar ni usar esa cadena. En estos casos, utiliza el saludo genérico: "Buen día, mi nombre es Katherine Lopez."
 
 Ejemplos de Manejo de Nombre:
-- Si el correo es juan.perez@empresa.com, el saludo sería "Hola Juan."
-- Si el correo es maria@empresa.com, el saludo sería "Hola Maria."
-- Si el correo es fgomez@empresa.com, hlondono@empresa.com, info@empresa.com, gerencia@empresa.com o jp@empresa.com, el saludo será "Buen día, mi nombre es Katherine Lopez."
+- Si el correo se ve como juan.perez@empresa.com, el saludo sería "Hola Juan."
+- Si el correo se ve como maria@empresa.com, el saludo sería "Hola Maria."
+- Si el correo se ve como fgomez@empresa.com, h.londono@empresa.com, info@empresa.com, gerencia@empresa.com o jp@empresa.com, el saludo será "Buen día, mi nombre es Katherine Lopez."
 
 Manejo de Múltiples Correos: El Correo electrónico puede contener varios correos electrónicos separados por ';' como por ejemplo contacto.co@empresa.com;camila.rodriguez@empresa.com en estos casos debes generar un objeto JSON por cada correo electrónico válido encontrado, aplicando las reglas de personalización a cada uno. Ignora partes que no parezcan correos válidos si las hubiera.
 
@@ -103,7 +103,7 @@ def generate_cold_email_draft_service(name, email) -> list[dict]:
     )
 
     # Inicializa el modelo Gemini
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash-preview-04-17")
 
     # Realiza la petición
     response = model.generate_content(prompt)

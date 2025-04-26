@@ -7,7 +7,6 @@ from .services import (
     get_suspects_service,
     update_suspect_service,
     soft_delete_suspect_service,
-    score_company_info,
     get_suspect_by_id_service,
     process_csv_upload_service
 )

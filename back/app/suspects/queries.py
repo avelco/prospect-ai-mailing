@@ -2,6 +2,11 @@ from requests import Session
 from ..models import Suspect, Participant
 from sqlalchemy import or_, exists
 from typing import Optional, List
+from sqlalchemy.orm import Session
+from sqlalchemy.future import select
+from sqlalchemy import update, func, select
+from datetime import datetime, timezone
+import logging
 
 # Returns all non-deleted suspects
 async def get_suspects_query(
@@ -68,34 +73,68 @@ async def get_any_suspect_by_id_query(db, suspect_id: int) -> Optional[Suspect]:
     return db.query(Suspect).filter(Suspect.id == suspect_id).first()
 
 # Bulk create suspects from CSV rows
-async def bulk_create_suspects_from_rows(db, suspect_rows, SuspectModel, SuspectCreateModel):
+def bulk_create_suspects_from_rows(db: Session, suspect_rows, SuspectModel, SuspectCreateModel):
     """
-    suspect_rows: list of dicts (parsed CSV rows)
+    Performs a bulk insert of suspect rows using SQLAlchemy's bulk_insert_mappings.
+    Assumes input rows have already been cleaned and filtered for duplicates
+    both within the list and against existing database records.
+
+    suspect_rows: list of dicts (parsed, cleaned, and filtered CSV rows)
     SuspectModel: SQLAlchemy model class
-    SuspectCreateModel: Pydantic model class
+    SuspectCreateModel: Pydantic model class for validation/structure (optional usage here)
     """
+    mappings_to_insert = []
+    ids_in_this_batch = set() # Keep track of IDs added in this run
+
     for row in suspect_rows:
+        # Prepare data mapping for the SuspectModel columns
         identification = row.get("client_document_number", "").strip()
-        if not identification:
-            raise ValueError("El campo 'client_document_number' es obligatorio en cada fila.")
-        existing_suspect = db.query(SuspectModel).filter(SuspectModel.identification == identification).first()
-        if existing_suspect:
-            raise Exception(f"El suspecto con identificación {identification} ya existe.")
+        # Basic check, although primary validation should happen before this point
+        if not identification or not row.get("client_email"): 
+             logging.warning(f"Skipping row due to missing identification or email: {row}") # Or log warning
+             continue
+        
+        # Prevent adding duplicates within this batch
+        if identification in ids_in_this_batch:
+            logging.warning(f"Skipping row with duplicate identification within this batch: {identification} - Row: {row}")
+            continue
+
         full_name = f"{row.get('client_name', '').strip()} {row.get('client_surname', '').strip()}".strip()
-        suspect_data = SuspectCreateModel(
-            email=row.get("client_email", "").strip(),
-            name=full_name,
-            phone=(row.get("client_phone", "").strip() or row.get("client_mobile", "").strip()),
-            city=row.get("municipality_name", "").strip(),
-            state=row.get("department_name", "").strip(),
-            country=row.get("country_name", "").strip(),
-            identification=identification,
-            status="new",
-            deleted=False
-        )
-        suspect = SuspectModel(**suspect_data.model_dump())
-        db.add(suspect)
-    db.commit()
+        mapping = {
+            "email": row.get("client_email", "").strip(),
+            "name": full_name,
+            "phone": (row.get("client_phone", "").strip() or row.get("client_mobile", "").strip()),
+            "city": row.get("municipality_name", "").strip(),
+            "state": row.get("department_name", "").strip(),
+            "country": row.get("country_name", "").strip(),
+            "identification": identification,
+            "status": "new",
+            "deleted": False,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
+        }
+
+        mappings_to_insert.append(mapping)
+        ids_in_this_batch.add(identification) # Add ID to tracking set
+
+    if not mappings_to_insert:
+        logging.warning("No valid suspect rows to insert after mapping preparation.")
+        return True # Or False, depending on desired behavior
+
+    logging.info(f"Attempting bulk insert of {len(mappings_to_insert)} suspect mappings.")
+    # logging.debug(f"Mappings for bulk insert: {mappings_to_insert}") # Optional: log all mappings
+
+    try:
+        db.bulk_insert_mappings(SuspectModel, mappings_to_insert)
+        db.commit()
+    except Exception as e:
+        db.rollback() # Rollback in case of error during bulk insert
+        # Log the specific error
+        logging.error(f"Error during bulk insert: {e}", exc_info=True) # Log full traceback
+        # Re-raise the original exception or a custom one
+        raise Exception(f"Bulk insert failed: {e}") from e
+
+    logging.info(f"Successfully inserted {len(mappings_to_insert)} suspects.")
     return True
 
 async def get_suspect_by_id(db: Session, suspect_id: int) -> Optional[Suspect]:
@@ -103,3 +142,23 @@ async def get_suspect_by_id(db: Session, suspect_id: int) -> Optional[Suspect]:
         Suspect.id == suspect_id,
         or_(Suspect.deleted == False, Suspect.deleted.is_(None))
     ).first()
+
+def get_existing_identifications(db: Session, identification_numbers: List[str]) -> set[str]:
+    """
+    Queries the database to find which of the provided identification numbers
+    already exist in the Suspect table.
+
+    Args:
+        db: The database session.
+        identification_numbers: A list of identification strings to check.
+
+    Returns:
+        A set containing the identification numbers that already exist.
+    """
+    if not identification_numbers:
+        return set()
+
+    query = select(Suspect.identification).where(Suspect.identification.in_(identification_numbers))
+    result = db.execute(query)
+    existing_ids = {row[0] for row in result.scalars().all()}
+    return existing_ids

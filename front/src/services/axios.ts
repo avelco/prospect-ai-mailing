@@ -1,10 +1,17 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/api';
+const env = import.meta.env.VITE_ENV;
+
+let baseURL = '';
+
+if (env === 'production') {
+  baseURL = import.meta.env.VITE_PROD_BACKEND_URL;
+} else {
+  baseURL = import.meta.env.VITE_DEV_BACKEND_URL;
+}
 
 const api = axios.create({
   baseURL,
-  // You can add more default config here, like headers, timeout, etc.
 });
 
 export default api;

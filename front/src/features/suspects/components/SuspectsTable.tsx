@@ -2,6 +2,8 @@ import { useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import { useSuspectDelete, useSuspects } from "../../../hooks/useSuspect";
 import { AddParticipant } from "./AddParticipant";
+import PaginationControls from "../../../components/Pagination/PaginationControls";
+
 const SuspectsTable = () => {
     const [limit] = useState(10);
     const [offset, setOffset] = useState(0);
@@ -13,21 +15,12 @@ const SuspectsTable = () => {
         deleteMutation.mutate(id);
     };
 
-    // Pagination logic
     const total = data?.total || 0;
     const pages = Math.ceil(total / limit);
     const currentPage = Math.floor(offset / limit) + 1;
 
-    const goToPage = (page: number) => {
+    const handlePageChange = (page: number) => {
         setOffset((page - 1) * limit);
-    };
-
-    const handlePrev = () => {
-        if (currentPage > 1) goToPage(currentPage - 1);
-    };
-
-    const handleNext = () => {
-        if (currentPage < pages) goToPage(currentPage + 1);
     };
 
     return (
@@ -41,7 +34,6 @@ const SuspectsTable = () => {
                 </div>
             </div>
             <div className="p-5">
-                {/* Loading and Error States */}
                 {isLoading && (
                     <div className="text-center py-12 text-blue-500 text-lg font-semibold animate-pulse">
                         Cargando...
@@ -123,41 +115,12 @@ const SuspectsTable = () => {
                                 </tbody>
                             </table>
                         </div>
-                        {/* Pagination Controls */}
-                        <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-                            <div className="text-neutral-600">
-                                Página <span className="font-semibold">{currentPage}</span> de{" "}
-                                <span className="font-semibold">{pages}</span>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handlePrev}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-700 font-semibold hover:border-neutral-300 hover:text-neutral-950 disabled:opacity-50 transition"
-                                >
-                                    Anterior
-                                </button>
-                                {Array.from({ length: pages }, (_, i) => (
-                                    <button
-                                        key={i + 1}
-                                        onClick={() => goToPage(i + 1)}
-                                        className={`px-4 py-2 rounded-lg font-semibold transition border
-                                            ${currentPage === i + 1
-                                                ? "bg-blue-600 text-white border-blue-600 shadow"
-                                                : "bg-white text-neutral-700 border-neutral-200 hover:border-blue-300 hover:text-blue-700"
-                                            }`}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={handleNext}
-                                    disabled={currentPage === pages || pages === 0}
-                                    className="px-4 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-700 font-semibold hover:border-neutral-300 hover:text-neutral-950 disabled:opacity-50 transition"
-                                >
-                                    Siguiente
-                                </button>
-                            </div>
+                        <div className="p-6">
+                            <PaginationControls
+                                currentPage={currentPage}
+                                totalPages={pages}
+                                onPageChange={handlePageChange}
+                            />
                         </div>
                     </>
                 )}
