@@ -20,7 +20,7 @@ import math
 participants = APIRouter()
 
 
-@participants.post("/")
+@participants.post("")
 async def store_participant(
     participant: ParticipantCreate, db: Session = Depends(get_db)
 ):

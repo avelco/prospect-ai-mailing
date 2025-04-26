@@ -7,11 +7,11 @@ from ..dependencies import get_db
 
 products = APIRouter()
 
-@products.post("/")
+@products.post("")
 async def store_product(product: ProductCreate, db: Session = Depends(get_db)):
     return store_product_service(db, product)
 
-@products.get("/")
+@products.get("")
 async def get_products(db: Session = Depends(get_db)):
     return get_products_service(db)
 

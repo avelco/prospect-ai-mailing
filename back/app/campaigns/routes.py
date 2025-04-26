@@ -7,11 +7,11 @@ from ..dependencies import get_db
 
 campaigns = APIRouter()
 
-@campaigns.post("/")
+@campaigns.post("")
 async def store_campaign(campaign: CampaignCreate, db: Session = Depends(get_db)):
     return store_campaign_service(db, campaign)
 
-@campaigns.get("/")
+@campaigns.get("")
 async def get_campaigns(db: Session = Depends(get_db)):
     return get_campaigns_service(db)
 

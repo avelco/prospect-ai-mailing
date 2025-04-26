@@ -12,7 +12,7 @@ from app.schemas import ContactCreate
 contacts = APIRouter()
 
 
-@contacts.post("/")
+@contacts.post("")
 async def store_contact(contact: ContactCreate, db: Session = Depends(get_db)):
     return store_contact_service(db, contact)
 
