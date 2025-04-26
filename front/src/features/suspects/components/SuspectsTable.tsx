@@ -22,7 +22,7 @@ const SuspectsTable = () => {
     const handlePageChange = (page: number) => {
         setOffset((page - 1) * limit);
     };
-
+    console.log(data);
     return (
         <div className="flex flex-col rounded-lg border border-neutral-200 bg-white shadow p-0 sm:col-span-2 lg:col-span-4">
             <div className="flex flex-col items-center justify-between gap-4 border-b border-neutral-100 p-5 text-center sm:flex-row sm:text-start">
