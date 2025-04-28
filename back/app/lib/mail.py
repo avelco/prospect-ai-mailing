@@ -41,7 +41,7 @@ def mailgun_send_email(
         data={
             "from": from_email,
             "to": [to_email],
-            "h:Reply-To": "avelasco@cobranti.com",
+            "h:Reply-To": "klopez@cobranti.com",
             "subject": subject,
             "html": html_body,
         },
