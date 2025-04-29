@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCampaignStore } from "../stores/campaignStore";
 import api from "../services/axios";
 import { LeadResult } from "../interfaces/LeadInterface";
+import { useLeadsPaginationStore } from "../stores/pagination/paginationLeadsStore";
 
 const fetchLeads = async (
   limit: number,
@@ -15,8 +16,10 @@ const fetchLeads = async (
   return response.data;
 };
 
-export const useLeads = (limit: number, offset: number) => {
+export const useLeads = () => {
   const campaign = useCampaignStore((state) => state.campaign);
+  const limit = useLeadsPaginationStore((state) => state.limit);
+  const offset = useLeadsPaginationStore((state) => state.offset);
   return useQuery({
     queryKey: ["leads", limit, offset, campaign],
     queryFn: () => fetchLeads(limit, offset, campaign!),

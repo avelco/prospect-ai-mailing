@@ -1,24 +1,23 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useLeads } from "../../../hooks/useLeads";
 import { ConvertLeadToProspect } from "./ConvertLeadToProspect";
 import { Contacts } from "./Contacts";
 import { Link } from "react-router";
 import { Paginator } from "../../../components/Paginator";
+import { useLeadsPaginationStore } from "../../../stores/pagination/paginationLeadsStore";
 
 const LeadsTable = () => {
-    const [limit] = useState(10);
-    const [offset, setOffset] = useState(0);
+    const { data, isLoading, error, isSuccess } = useLeads();
+    const paginationStore = useLeadsPaginationStore();
+    const offset = useLeadsPaginationStore((state) => state.offset);
 
-    const { data, isLoading, error } = useLeads(limit, offset);
-
-    // Pagination logic
-    const total = data?.total || 0;
-    const pages = Math.ceil(total / limit);
-    const currentPage = Math.floor(offset / limit) + 1;
-
-    const handlePageChange = (page: number) => {
-        setOffset((page - 1) * limit);
-    };
+    useEffect(() => {
+        if (data) {
+            const total = data.total || 0;
+            paginationStore.setTotalPages(Math.ceil(total / paginationStore.limit));
+            paginationStore.setLastPage(Math.ceil(total / paginationStore.limit));
+        }
+    }, [data, isSuccess, offset]);
 
     return (
         <div className="flex flex-col rounded-lg border border-neutral-200 bg-white shadow p-0 sm:col-span-2 lg:col-span-4">
@@ -94,7 +93,7 @@ const LeadsTable = () => {
                                             <td className="p-3 text-end font-medium">
                                                 <div className="flex gap-2 justify-end">
                                                     <Contacts row={row} />
-                                                    <ConvertLeadToProspect participant_id={row.id} offset={offset} limit={limit} />
+                                                    <ConvertLeadToProspect participant_id={row.id} offset={offset} limit={paginationStore.limit} />
                                                 </div>
                                             </td>
                                         </tr>
@@ -103,13 +102,9 @@ const LeadsTable = () => {
                             </table>
                         </div>
                         {/* Pagination Controls */}
-                        {data?.leads.length != 0 && (
-                            <div className="p-6">
-                                {/* <Paginator
-                                    paginationStore={paginationStore}
-                                /> */}
-                            </div>
-                        )}
+                        <Paginator
+                            paginationStore={paginationStore}
+                        />
                     </>
                 )}
             </div>
