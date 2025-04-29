@@ -1,29 +1,23 @@
-import { useState } from "react";
-import { useParticipantsWithDrafts } from "../../../hooks/useParticipants";
+import { useEffect } from "react";
+import { useParticipants } from "../../../hooks/useParticipants";
 import { DeleteParticipant } from "../components/DeleteParticipant";
 import { CreateDraft } from "../components/CreateDraft";
+import {Paginator} from "../../../components/Paginator";
+import { useParticipantsPaginationStore } from "../../../stores/pagination/paginationParticipantsStore";
 const ParticipantTable = () => {
-    const [limit] = useState(10);
-    const [offset, setOffset] = useState(0);
 
-    const { data, isLoading, error } = useParticipantsWithDrafts(limit, offset);
+    const { data, isLoading, error, isSuccess } = useParticipants();
+    const paginationStore = useParticipantsPaginationStore();
+    const offset = useParticipantsPaginationStore((state) => state.offset);
 
-    // Pagination logic
-    const total = data?.total || 0;
-    const pages = Math.ceil(total / limit);
-    const currentPage = Math.floor(offset / limit) + 1;
+    useEffect(() => {
+        if (data) {
+            const total = data.total || 0;
+            paginationStore.setTotalPages(Math.ceil(total / paginationStore.limit));
+            paginationStore.setLastPage(Math.ceil(total / paginationStore.limit));
+        }
+    }, [data, isSuccess, offset]);
 
-    const goToPage = (page: number) => {
-        setOffset((page - 1) * limit);
-    };
-
-    const handlePrev = () => {
-        if (currentPage > 1) goToPage(currentPage - 1);
-    };
-
-    const handleNext = () => {
-        if (currentPage < pages) goToPage(currentPage + 1);
-    };
 
     return (
         <>
@@ -107,8 +101,8 @@ const ParticipantTable = () => {
                                             </td>
                                             <td className="p-3 text-end font-medium">
                                                 <div className="flex gap-2 justify-end">
-                                                    <CreateDraft row={row} limit={limit} offset={offset} />
-                                                    <DeleteParticipant row={row} limit={limit} offset={offset} />
+                                                    <CreateDraft row={row} limit={paginationStore.limit} offset={paginationStore.offset} />
+                                                    <DeleteParticipant row={row} limit={paginationStore.limit} offset={paginationStore.offset} />
                                                 </div>
                                             </td>
                                         </tr>
@@ -117,44 +111,9 @@ const ParticipantTable = () => {
                                 </tbody>
                             </table>
                         </div>
-                        {/* Pagination Controls */}
-                        {data?.participants.length != 0 && (
-                            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-                                <div className="text-neutral-600">
-                                    Página <span className="font-semibold">{currentPage}</span> de{" "}
-                                    <span className="font-semibold">{pages}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handlePrev}
-                                        disabled={currentPage === 1}
-                                        className="px-4 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-700 font-semibold hover:border-neutral-300 hover:text-neutral-950 disabled:opacity-50 transition"
-                                    >
-                                        Anterior
-                                    </button>
-                                    {Array.from({ length: pages }, (_, i) => (
-                                        <button
-                                            key={i + 1}
-                                            onClick={() => goToPage(i + 1)}
-                                            className={`px-4 py-2 rounded-lg font-semibold transition border
-                                            ${currentPage === i + 1
-                                                    ? "bg-blue-600 text-white border-blue-600 shadow"
-                                                    : "bg-white text-neutral-700 border-neutral-200 hover:border-blue-300 hover:text-blue-700"
-                                                }`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={handleNext}
-                                        disabled={currentPage === pages || pages === 0}
-                                        className="px-4 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-700 font-semibold hover:border-neutral-300 hover:text-neutral-950 disabled:opacity-50 transition"
-                                    >
-                                        Siguiente
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                        <Paginator
+                            paginationStore={paginationStore}
+                        />
                     </>
                 )}
             </div>

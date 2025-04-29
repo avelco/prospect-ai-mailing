@@ -4,6 +4,7 @@ import { Suspect, SuspectResult } from "../interfaces/SuspectInterface";
 import api from "../services/axios";
 import { useCampaignStore } from "../stores/campaignStore";
 import { useParams } from "react-router";
+import { useSuspectsPaginationStore } from "../stores/pagination/paginationSuspectsStore";
 
 const fetchSuspects = async (
   limit: number,
@@ -17,8 +18,11 @@ const fetchSuspects = async (
   return response.data;
 };
 
-export const useSuspects = (limit: number, offset: number) => {
+export const useSuspects = () => {
 	const campaign = useCampaignStore((state) => state.campaign);
+	const limit = useSuspectsPaginationStore((state) => state.limit);
+  const offset = useSuspectsPaginationStore((state) => state.offset);
+
 	return useQuery({
 		queryKey: ["suspects", limit, offset, campaign],
 		queryFn: () => fetchSuspects(limit, offset, campaign!),
@@ -26,8 +30,11 @@ export const useSuspects = (limit: number, offset: number) => {
 	});
 };
 
-export const useSuspectDelete = ( limit: number, offset: number) => {
+export const useSuspectDelete = () => {
   const campaign = useCampaignStore((state) => state.campaign);
+  const limit = useSuspectsPaginationStore((state) => state.limit);
+  const offset = useSuspectsPaginationStore((state) => state.offset);
+
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {

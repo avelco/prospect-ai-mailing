@@ -38,17 +38,17 @@ const ParticipantPage = () => {
                 {/* Tab Content */}
                 <div>
                     {activeTab === "Participants" && (
-                        <div>
+                        <div key={activeTab}>
                             <ParticipantTable />
                         </div>
                     )}
                     {activeTab === "Drafts" && (
-                        <div>
+                        <div key={activeTab}>
                             <DraftsTable />
                         </div>
                     )}
                     {activeTab === "Sent" && (
-                        <div>
+                        <div key={activeTab}>
                             <SentTable />
                         </div>
                     )}

@@ -1,30 +1,33 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { FaTrash } from "react-icons/fa";
 import { useSuspectDelete, useSuspects } from "../../../hooks/useSuspect";
 import { AddParticipant } from "./AddParticipant";
-import PaginationControls from "../../../components/Pagination/PaginationControls";
+import { useSuspectsPaginationStore } from "../../../stores/pagination/paginationSuspectsStore";
+import { Paginator } from "../../../components/Paginator";
 
 const SuspectsTable = () => {
-    const [limit] = useState(10);
-    const [offset, setOffset] = useState(0);
 
-    const deleteMutation = useSuspectDelete(limit, offset);
-    const { data, isLoading, error } = useSuspects(limit, offset);
+    const paginationStore = useSuspectsPaginationStore();
+    const offset = useSuspectsPaginationStore((state) => state.offset);
+
+    const deleteMutation = useSuspectDelete();
+    const { data, isLoading, error, isSuccess } = useSuspects();
+
+    useEffect(() => {
+        if (data) {
+            const total = data.total || 0;
+            paginationStore.setTotalPages(Math.ceil(total / paginationStore.limit));
+            paginationStore.setLastPage(Math.ceil(total / paginationStore.limit));
+        }
+    }, [data, isSuccess, offset]);
 
     const handleDelete = (id: number) => {
         deleteMutation.mutate(id);
     };
 
-    const total = data?.total || 0;
-    const pages = Math.ceil(total / limit);
-    const currentPage = Math.floor(offset / limit) + 1;
-
-    const handlePageChange = (page: number) => {
-        setOffset((page - 1) * limit);
-    };
-    console.log(data);
     return (
-        <div className="flex flex-col rounded-lg border border-neutral-200 bg-white shadow p-0 sm:col-span-2 lg:col-span-4">
+        <div
+            className="flex flex-col rounded-lg border border-neutral-200 bg-white shadow p-0 sm:col-span-2 lg:col-span-4 w-full mx-auto">
             <div className="flex flex-col items-center justify-between gap-4 border-b border-neutral-100 p-5 text-center sm:flex-row sm:text-start">
                 <div>
                     <h2 className="mb-0.5 font-semibold text-lg">Suspects</h2>
@@ -107,7 +110,7 @@ const SuspectsTable = () => {
                                                         <FaTrash />
                                                         <span className="hidden sm:inline">Eliminar</span>
                                                     </button>
-                                                    <AddParticipant row={row} limit={limit} offset={offset} />
+                                                    <AddParticipant row={row} limit={paginationStore.limit} offset={paginationStore.offset} />
                                                 </div>
                                             </td>
                                         </tr>
@@ -116,11 +119,7 @@ const SuspectsTable = () => {
                             </table>
                         </div>
                         <div className="p-6">
-                            <PaginationControls
-                                currentPage={currentPage}
-                                totalPages={pages}
-                                onPageChange={handlePageChange}
-                            />
+                            <Paginator paginationStore={paginationStore} />
                         </div>
                     </>
                 )}

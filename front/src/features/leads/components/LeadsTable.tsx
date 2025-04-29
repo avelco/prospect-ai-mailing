@@ -3,7 +3,7 @@ import { useLeads } from "../../../hooks/useLeads";
 import { ConvertLeadToProspect } from "./ConvertLeadToProspect";
 import { Contacts } from "./Contacts";
 import { Link } from "react-router";
-import PaginationControls from "../../../components/Pagination/PaginationControls";
+import { Paginator } from "../../../components/Paginator";
 
 const LeadsTable = () => {
     const [limit] = useState(10);
@@ -105,11 +105,9 @@ const LeadsTable = () => {
                         {/* Pagination Controls */}
                         {data?.leads.length != 0 && (
                             <div className="p-6">
-                                <PaginationControls
-                                    currentPage={currentPage}
-                                    totalPages={pages}
-                                    onPageChange={handlePageChange}
-                                />
+                                {/* <Paginator
+                                    paginationStore={paginationStore}
+                                /> */}
                             </div>
                         )}
                     </>

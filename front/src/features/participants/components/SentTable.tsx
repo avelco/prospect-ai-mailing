@@ -1,23 +1,23 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useParticipantsWithMail } from "../../../hooks/useParticipants";
 import { SentShow } from "./SentShow";
 import { SentConvertIntoLead } from "./SentConvertIntoLead";
-import PaginationControls from "../../../components/Pagination/PaginationControls";
+import { Paginator } from "../../../components/Paginator";
+import { useSentPaginationStore } from "../../../stores/pagination/paginationSentStore";
 
 const SentTable = () => {
-    const [limit] = useState(10);
-    const [offset, setOffset] = useState(0);
 
-    const { data, isLoading, error } = useParticipantsWithMail(limit, offset);
+    const { data, isLoading, error, isSuccess } = useParticipantsWithMail();
+    const paginationStore = useSentPaginationStore();
+    const offset = useSentPaginationStore((state) => state.offset);
 
-    // Pagination logic
-    const total = data?.total || 0;
-    const pages = Math.ceil(total / limit);
-    const currentPage = Math.floor(offset / limit) + 1;
-
-    const handlePageChange = (page: number) => {
-        setOffset((page - 1) * limit);
-    };
+    useEffect(() => {
+        if (data) {
+            const total = data.total || 0;
+            paginationStore.setTotalPages(Math.ceil(total / paginationStore.limit));
+            paginationStore.setLastPage(Math.ceil(total / paginationStore.limit));
+        }
+    }, [data, isSuccess, offset]);
 
     return (
         <>
@@ -74,7 +74,6 @@ const SentTable = () => {
                                         </tr>
                                     )}
                                     {data?.participants?.map((row) => (
-                                        row.has_email && (
                                         <tr
                                             key={row.suspect.identification}
                                             className={`border-b border-neutral-100 hover:bg-neutral-50 transition-colors duration-200
@@ -102,25 +101,17 @@ const SentTable = () => {
                                             <td className="p-3 text-end font-medium">
                                                 <div className="flex gap-2 justify-end">
                                                     <SentShow row={row} />
-                                                    <SentConvertIntoLead participant_id={row.id} offset={offset} limit={limit} />
+                                                    <SentConvertIntoLead participant_id={row.id} offset={paginationStore.offset} limit={paginationStore.limit} />
                                                 </div>
                                             </td>
                                         </tr>
-                                        )
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                        {/* Pagination Controls */}
-                        {data?.participants.length != 0 && (
-                            <div className="p-6">
-                                <PaginationControls
-                                    currentPage={currentPage}
-                                    totalPages={pages}
-                                    onPageChange={handlePageChange}
-                                />
-                            </div>
-                        )}
+                        <Paginator
+                            paginationStore={paginationStore}
+                        />
                     </>
                 )}
             </div>
